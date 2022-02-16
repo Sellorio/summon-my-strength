@@ -1,0 +1,6 @@
+﻿1. Rune Pages & Rune Page sync on champion intent/select.
+2. Per champion summoner spell defaults (multiple), automatically set top default, allow users to select a different set of summoner spells.
+3. Automatic selection of skins based on favourite(s). If multiple favourites, randomly pick one.
+3. Auto-Accept Ready Checks
+4. Track CS as a Support in game to maximise support minion allowance (2 per min for first 5 min, 4 per min after that).
+5. Automatic bench swapping in ARAM based on favourite ARAM champions.

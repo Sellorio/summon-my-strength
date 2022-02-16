@@ -1,0 +1,62 @@
+﻿<Window x:Class="SummonMyStrength.Views.MainView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:SummonMyStrength.ViewModels"
+        mc:Ignorable="d"
+        Title="Summon My Strength" ResizeMode="CanMinimize" Width="400" SizeToContent="Height">
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="_Shared.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+    <Window.DataContext>
+        <vm:MainViewModel />
+    </Window.DataContext>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Label Grid.Row="0" FontSize="20" FontWeight="Bold" HorizontalContentAlignment="Center">Summon My Strength</Label>
+        <Border Grid.Row="1" BorderBrush="#AAA" BorderThickness="0 1 0 0">
+            <Grid>
+                <TextBlock Margin="5" FontSize="16" Foreground="#6000" HorizontalAlignment="Center" VerticalAlignment="Center"
+                           Visibility="{Binding ClientState, Converter={StaticResource NotEqualityToVisibilityConverter}, ConverterParameter=ReadyCheck}">Waiting for Ready Check</TextBlock>
+                <TextBlock Margin="5" FontSize="16" Foreground="#0A0" HorizontalAlignment="Center" VerticalAlignment="Center"
+                           Visibility="{Binding ClientState, Converter={StaticResource EqualityToVisibilityConverter}, ConverterParameter=ReadyCheck}">Ready Check Accepted</TextBlock>
+            </Grid>
+        </Border>
+        <Border Grid.Row="2" BorderBrush="#AAA" BorderThickness="0 1 0 0">
+            <Grid>
+                <TextBlock Margin="5" FontSize="16" Foreground="#6000" HorizontalAlignment="Center" VerticalAlignment="Center"
+                           Visibility="{Binding ChampionSelectSession, Converter={StaticResource VisibilityConverter}, ConverterParameter=Invert}">Waiting for Champion Select</TextBlock>
+                <Grid Visibility="{Binding ChampionSelectSession, Converter={StaticResource VisibilityConverter}}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.Row="0" Margin="5" FontSize="16" Foreground="#0A0" HorizontalAlignment="Center"  VerticalAlignment="Center">In Champion Select</TextBlock>
+                    <Grid Grid.Row="1" Margin="5 0 5 5" Width="100">
+                        <Image Visibility="{Binding ChampionSelectSession.Position, Converter={StaticResource EqualityToVisibilityConverter}, ConverterParameter=Bottom}"
+                       Source="{StaticResource IconPositionBottomBlue}" />
+                        <Image Visibility="{Binding ChampionSelectSession.Position, Converter={StaticResource EqualityToVisibilityConverter}, ConverterParameter=Support}"
+                       Source="{StaticResource IconPositionSupportBlue}" />
+                        <Image Visibility="{Binding ChampionSelectSession.Position, Converter={StaticResource EqualityToVisibilityConverter}, ConverterParameter=Middle}"
+                       Source="{StaticResource IconPositionMiddleBlue}" />
+                        <Image Visibility="{Binding ChampionSelectSession.Position, Converter={StaticResource EqualityToVisibilityConverter}, ConverterParameter=Jungle}"
+                       Source="{StaticResource IconPositionJungleBlue}" />
+                        <Image Visibility="{Binding ChampionSelectSession.Position, Converter={StaticResource EqualityToVisibilityConverter}, ConverterParameter=Top}"
+                       Source="{StaticResource IconPositionTopBlue}" />
+                        <Image Visibility="{Binding ChampionSelectSession.Position, Converter={StaticResource EqualityToVisibilityConverter}}"
+                       Source="{StaticResource IconPositionUnknownBlue}" />
+                    </Grid>
+                </Grid>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>
