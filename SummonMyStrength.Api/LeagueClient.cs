@@ -18,6 +18,8 @@ using SummonMyStrength.Api.Matchmaking;
 using System.Net.WebSockets;
 using System.Threading;
 using System.Net;
+using SummonMyStrength.Api.Perks;
+using SummonMyStrength.Api.Champions;
 
 namespace SummonMyStrength.Api
 {
@@ -33,15 +35,19 @@ namespace SummonMyStrength.Api
         private ClientWebSocket _socketConnection;
         private CancellationTokenSource _cancellationTokenSource;
 
-        internal HttpClient HttpClient { get; private set; }
+        public HttpClient HttpClient { get; private set; }
+
+        internal HttpClient DataDragonHttpClient { get; set; }
 
         internal JsonSerializerOptions JsonSerializerOptions => _jsonSerializerOptions;
 
         public bool IsConnected => _socketConnection?.State == WebSocketState.Open;
 
+        public ChampionsModule Champions { get; }
         public ChampSelectModule ChampSelect { get; }
         public GameflowModule Gameflow { get; }
         public MatchmakingModule Matchmaking { get; }
+        public PerksModule Perks { get; }
 
         static LeagueClient()
         {
@@ -57,9 +63,14 @@ namespace SummonMyStrength.Api
 
         public LeagueClient()
         {
+            DataDragonHttpClient = new HttpClient(_httpMessageHandler);
+            DataDragonHttpClient.BaseAddress = new Uri("http://ddragon.leagueoflegends.com/");
+
+            Champions = new ChampionsModule(this);
             ChampSelect = new ChampSelectModule(this);
             Gameflow = new GameflowModule(this);
             Matchmaking = new MatchmakingModule(this);
+            Perks = new PerksModule(this);
         }
 
         public async Task<bool> ConnectAsync()

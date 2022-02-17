@@ -16,7 +16,7 @@ namespace SummonMyStrength.Api.ChampSelect
 
             _client.AddMessageHandler(x =>
             {
-                if (x.Path == "/lol-lobby-team-builder/champ-select/v1/session" && SessionChanged != null)
+                if ((x.Path == "/lol-lobby-team-builder/champ-select/v1/session" || x.Path == "/lol-champ-select/v1/session") && SessionChanged != null)
                 {
                     SessionChanged.Invoke(JsonSerializer.Deserialize<ChampSelectSession>(x.Data.GetRawText(), _client.JsonSerializerOptions));
                 }

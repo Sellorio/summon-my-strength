@@ -1,6 +1,6 @@
 ﻿namespace SummonMyStrength.Api.DataDragon
 {
-    internal class ImageReferenceModel
+    public class ImageReference
     {
         public string Full { get; set; }
         public string Sprite { get; set; }

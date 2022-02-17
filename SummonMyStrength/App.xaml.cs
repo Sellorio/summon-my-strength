@@ -1,4 +1,5 @@
-﻿using SummonMyStrength.Views;
+﻿using SummonMyStrength.Api;
+using SummonMyStrength.Views;
 using System.Windows;
 
 namespace SummonMyStrength
@@ -8,6 +9,8 @@ namespace SummonMyStrength
     /// </summary>
     public partial class App : Application
     {
+        public static LeagueClient LeagueClient { get; set; }
+
         private void Application_Startup(object sender, StartupEventArgs e)
         {
             SEA.Mvvm.Wpf.WpfMvvm.Initialise();

@@ -21,9 +21,16 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <Label Grid.Row="0" FontSize="20" FontWeight="Bold" HorizontalContentAlignment="Center">Summon My Strength</Label>
-        <Border Grid.Row="1" BorderBrush="#AAA" BorderThickness="0 1 0 0">
+        <Menu Grid.Row="0">
+            <MenuItem FontSize="14" Header="API Playground" Command="{Binding OpenApiPlayground}" />
+        </Menu>
+
+        <Label Grid.Row="1" FontSize="20" FontWeight="Bold" HorizontalContentAlignment="Center">Summon My Strength</Label>
+        
+        <Border Grid.Row="2" BorderBrush="#AAA" BorderThickness="0 1 0 0">
             <Grid>
                 <TextBlock Margin="5" FontSize="16" Foreground="#6000" HorizontalAlignment="Center" VerticalAlignment="Center"
                            Visibility="{Binding ClientState, Converter={StaticResource NotEqualityToVisibilityConverter}, ConverterParameter=ReadyCheck}">Waiting for Ready Check</TextBlock>
@@ -31,7 +38,8 @@
                            Visibility="{Binding ClientState, Converter={StaticResource EqualityToVisibilityConverter}, ConverterParameter=ReadyCheck}">Ready Check Accepted</TextBlock>
             </Grid>
         </Border>
-        <Border Grid.Row="2" BorderBrush="#AAA" BorderThickness="0 1 0 0">
+        
+        <Border Grid.Row="3" BorderBrush="#AAA" BorderThickness="0 1 0 0">
             <Grid>
                 <TextBlock Margin="5" FontSize="16" Foreground="#6000" HorizontalAlignment="Center" VerticalAlignment="Center"
                            Visibility="{Binding ChampionSelectSession, Converter={StaticResource VisibilityConverter}, ConverterParameter=Invert}">Waiting for Champion Select</TextBlock>
@@ -56,6 +64,21 @@
                        Source="{StaticResource IconPositionUnknownBlue}" />
                     </Grid>
                 </Grid>
+            </Grid>
+        </Border>
+
+        <Border Grid.Row="4" BorderBrush="#AAA" BorderThickness="0 1 0 0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Margin="5" FontSize="16" Foreground="#6000" VerticalAlignment="Center"
+                           Visibility="{Binding RuneChampionContext, Converter={StaticResource VisibilityConverter}, ConverterParameter=Invert}">Runes currently loaded for:</TextBlock>
+                <TextBlock Grid.Column="0" Margin="5" FontSize="16" Foreground="#0A0" VerticalAlignment="Center"
+                           Visibility="{Binding RuneChampionContext, Converter={StaticResource VisibilityConverter}}">Runes currently loaded for:</TextBlock>
+                <ComboBox Grid.Column="1" Margin="5" FontSize="14" VerticalContentAlignment="Center"
+                          ItemsSource="{Binding Champions}" SelectedValuePath="Key" DisplayMemberPath="Name" SelectedValue="{Binding RuneChampionContext}" />
             </Grid>
         </Border>
     </Grid>

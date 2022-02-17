@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 namespace SummonMyStrength.Api.Gameflow
 {
@@ -26,6 +27,18 @@ namespace SummonMyStrength.Api.Gameflow
                     GameflowPhaseChanged?.Invoke(phase);
                 }
             });
+        }
+
+        public async Task<GameflowPhase> GetGameflowPhaseAsync()
+        {
+            var phaseAsString = await _client.HttpClient.GetStringAsync("lol-gameflow/v1/gameflow-phase");
+
+            if (!Enum.TryParse<GameflowPhase>(phaseAsString.Trim('"'), out var phase))
+            {
+                phase = GameflowPhase.NewUnsupportedValue;
+            }
+
+            return phase;
         }
     }
 }

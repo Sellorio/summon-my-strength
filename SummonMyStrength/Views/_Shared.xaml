@@ -8,10 +8,10 @@
     <c:EqualityToVisibilityConverter x:Key="EqualityToVisibilityConverter" />
     <c:NotEqualityToVisibilityConverter x:Key="NotEqualityToVisibilityConverter" />
 
-    <BitmapImage x:Key="IconPositionBottomBlue" UriSource="pack://siteoforigin:,,,/Assets/icon-position-bottom-blue.png" />
-    <BitmapImage x:Key="IconPositionMiddleBlue" UriSource="pack://siteoforigin:,,,/Assets/icon-position-middle-blue.png" />
-    <BitmapImage x:Key="IconPositionTopBlue" UriSource="pack://siteoforigin:,,,/Assets/icon-position-top-blue.png" />
-    <BitmapImage x:Key="IconPositionJungleBlue" UriSource="pack://siteoforigin:,,,/Assets/icon-position-jungle-blue.png" />
-    <BitmapImage x:Key="IconPositionSupportBlue" UriSource="pack://siteoforigin:,,,/Assets/icon-position-support-blue.png" />
-    <BitmapImage x:Key="IconPositionUnknownBlue" UriSource="pack://siteoforigin:,,,/Assets/icon-position-unknown-blue.png" />
+    <BitmapImage x:Key="IconPositionBottomBlue" UriSource="pack://siteoforigin:,,,/Assets/Positions/icon-position-bottom-blue.png" />
+    <BitmapImage x:Key="IconPositionMiddleBlue" UriSource="pack://siteoforigin:,,,/Assets/Positions/icon-position-middle-blue.png" />
+    <BitmapImage x:Key="IconPositionTopBlue" UriSource="pack://siteoforigin:,,,/Assets/Positions/icon-position-top-blue.png" />
+    <BitmapImage x:Key="IconPositionJungleBlue" UriSource="pack://siteoforigin:,,,/Assets/Positions/icon-position-jungle-blue.png" />
+    <BitmapImage x:Key="IconPositionSupportBlue" UriSource="pack://siteoforigin:,,,/Assets/Positions/icon-position-support-blue.png" />
+    <BitmapImage x:Key="IconPositionUnknownBlue" UriSource="pack://siteoforigin:,,,/Assets/Positions/icon-position-unknown-blue.png" />
 </ResourceDictionary>
