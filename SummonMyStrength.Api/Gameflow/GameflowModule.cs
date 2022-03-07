@@ -7,13 +7,13 @@ namespace SummonMyStrength.Api.Gameflow
     {
         private readonly LeagueClient _client;
 
-        public event Action<GameflowPhase> GameflowPhaseChanged;
+        public event Func<GameflowPhase, Task> GameflowPhaseChanged;
 
         internal GameflowModule(LeagueClient client)
         {
             _client = client;
 
-            _client.AddMessageHandler(x =>
+            _client.AddMessageHandler(async x =>
             {
                 if (x.Path == "/lol-gameflow/v1/gameflow-phase")
                 {
@@ -24,7 +24,7 @@ namespace SummonMyStrength.Api.Gameflow
                         phase = GameflowPhase.NewUnsupportedValue;
                     }
 
-                    GameflowPhaseChanged?.Invoke(phase);
+                    await GameflowPhaseChanged.InvokeAsync(phase);
                 }
             });
         }

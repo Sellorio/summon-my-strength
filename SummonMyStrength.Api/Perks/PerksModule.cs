@@ -10,27 +10,27 @@ namespace SummonMyStrength.Api.Perks
     {
         private readonly LeagueClient _client;
 
-        public event Action<PerkPage[]> PerkPagesUpdated;
-        public event Action<PerkPage> PerkPageUpdated;
+        public event Func<PerkPage[], Task> PerkPagesUpdated;
+        public event Func<PerkPage, Task> PerkPageUpdated;
 
         public PerksModule(LeagueClient client)
         {
             _client = client;
 
-            _client.AddMessageHandler(x =>
+            _client.AddMessageHandler(async x =>
             {
                 if (x.Path == "/lol-perks/v1/pages")
                 {
                     if (x.Action == EventActions.Update && PerkPagesUpdated != null)
                     {
-                        PerkPagesUpdated.Invoke(JsonSerializer.Deserialize<PerkPage[]>(x.Data.GetRawText(), _client.JsonSerializerOptions));
+                        await PerkPagesUpdated.InvokeAsync(JsonSerializer.Deserialize<PerkPage[]>(x.Data.GetRawText(), _client.JsonSerializerOptions));
                     }
                 }
                 else if (x.Path.StartsWith("/lol-perks/v1/pages/"))
                 {
                     if (x.Action == EventActions.Update && PerkPageUpdated != null)
                     {
-                        PerkPageUpdated?.Invoke(JsonSerializer.Deserialize<PerkPage>(x.Data.GetRawText(), _client.JsonSerializerOptions));
+                        await PerkPageUpdated.InvokeAsync(JsonSerializer.Deserialize<PerkPage>(x.Data.GetRawText(), _client.JsonSerializerOptions));
                     }
                 }
             });

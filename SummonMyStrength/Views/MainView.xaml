@@ -23,6 +23,8 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <Menu Grid.Row="0">
             <MenuItem FontSize="14" Header="API Playground" Command="{Binding OpenApiPlayground}" />
@@ -72,6 +74,7 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition />
+                    <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <TextBlock Grid.Column="0" Margin="5" FontSize="16" Foreground="#6000" VerticalAlignment="Center"
                            Visibility="{Binding RuneChampionContext, Converter={StaticResource VisibilityConverter}, ConverterParameter=Invert}">Runes currently loaded for:</TextBlock>
@@ -79,6 +82,44 @@
                            Visibility="{Binding RuneChampionContext, Converter={StaticResource VisibilityConverter}}">Runes currently loaded for:</TextBlock>
                 <ComboBox Grid.Column="1" Margin="5" FontSize="14" VerticalContentAlignment="Center"
                           ItemsSource="{Binding Champions}" SelectedValuePath="Key" DisplayMemberPath="Name" SelectedValue="{Binding RuneChampionContext}" />
+                <Button Grid.Column="2" Margin="0 5 5 5" Padding="3 0" FontSize="14"
+                        Visibility="{Binding RuneChampionContext, Converter={StaticResource VisibilityConverter}}"
+                        Command="{Binding SaveRunes}"
+                        IsEnabled="{Binding SaveRunes.IsExecutable, Converter={StaticResource BooleanConverter}}">💾</Button>
+                <Button Grid.Column="2" Margin="0 5 5 5" Padding="3 0" FontSize="14"
+                        Visibility="{Binding RuneChampionContext, Converter={StaticResource VisibilityConverter}, ConverterParameter=Invert}"
+                        IsEnabled="false">💾</Button>
+            </Grid>
+        </Border>
+
+        <Border Grid.Row="5" BorderBrush="#AAA" BorderThickness="0 1 0 0">
+            <Grid>
+                <TextBlock Margin="5" FontSize="16" Foreground="#6000" HorizontalAlignment="Center" VerticalAlignment="Center"
+                           Visibility="{Binding ItemSetsMessage, Converter={StaticResource VisibilityConverter}, ConverterParameter=Invert}">Waiting for client connection...</TextBlock>
+                <TextBlock Margin="5" FontSize="16" Foreground="#0A0" HorizontalAlignment="Center" VerticalAlignment="Center"
+                           Visibility="{Binding ItemSetsMessage, Converter={StaticResource VisibilityConverter}}" Text="{Binding ItemSetsMessage}" />
+            </Grid>
+        </Border>
+
+        <Border Grid.Row="6" BorderBrush="#AAA" BorderThickness="0 1 0 0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Margin="5" FontSize="16" Foreground="#6000" VerticalAlignment="Center"
+                           Visibility="{Binding Champions, Converter={StaticResource VisibilityConverter}, ConverterParameter=Invert}">Waiting for client connection...</TextBlock>
+                <Grid Grid.Column="0" Visibility="{Binding Champions, Converter={StaticResource VisibilityConverter}}">
+                    <TextBlock Margin="5" FontSize="16" Foreground="#6000" VerticalAlignment="Center"
+                               Visibility="{Binding IsInAram, Converter={StaticResource VisibilityConverter}, ConverterParameter=Invert}">Waiting for ARAM...</TextBlock>
+                    <TextBlock Margin="5" FontSize="16" Foreground="#0A0" VerticalAlignment="Center"
+                               Visibility="{Binding IsInAram, Converter={StaticResource VisibilityConverter}}">Automatic Trades Active</TextBlock>
+                </Grid>
+                <Button Grid.Column="2" Margin="5" Padding="3 0" FontSize="14"
+                        Command="{Binding EditAramPreferences}"
+                        IsEnabled="{Binding Champions, Converter={StaticResource BooleanConverter}}">
+                    Edit ARAM Preferences
+                </Button>
             </Grid>
         </Border>
     </Grid>

@@ -1,4 +1,0 @@
-﻿1. Per champion summoner spell defaults (multiple), automatically set top default, allow users to select a different set of summoner spells.
-2. Automatic selection of skins based on favourite(s). If multiple favourites, randomly pick one.
-3. Track CS as a Support in game to maximise support minion allowance (2 per min for first 5 min, 4 per min after that).
-4. Automatic bench swapping in ARAM based on favourite ARAM champions.

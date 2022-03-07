@@ -35,6 +35,24 @@ namespace SummonMyStrength.ViewModels
             get => Get<int?>();
             set => Set(value);
         }
+        
+        public string ItemSetsMessage
+        {
+            get => Get<string>();
+            set => Set(value);
+        }
+
+        public string AramChampionSwappingMessage
+        {
+            get => Get<string>();
+            set => Set(value);
+        }
+
+        public bool IsInAram
+        {
+            get => Get<bool>();
+            set => Set(value);
+        }
 
         public CommandBase Initialise
         {
@@ -49,6 +67,18 @@ namespace SummonMyStrength.ViewModels
         }
 
         public CommandBase ReApplyChampionRunes
+        {
+            get => Get<CommandBase>();
+            set => Set(value);
+        }
+
+        public CommandBase SaveRunes
+        {
+            get => Get<CommandBase>();
+            set => Set(value);
+        }
+
+        public CommandBase EditAramPreferences
         {
             get => Get<CommandBase>();
             set => Set(value);

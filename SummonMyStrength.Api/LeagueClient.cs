@@ -20,6 +20,9 @@ using System.Threading;
 using System.Net;
 using SummonMyStrength.Api.Perks;
 using SummonMyStrength.Api.Champions;
+using SummonMyStrength.Api.Summoner;
+using SummonMyStrength.Api.Login;
+using SummonMyStrength.Api.ItemSets;
 
 namespace SummonMyStrength.Api
 {
@@ -31,7 +34,7 @@ namespace SummonMyStrength.Api
 
         private static readonly HttpMessageHandler _httpMessageHandler;
 
-        private readonly List<Action<LeagueClientWebSocketMessage>> _webSocketMessageHandlers = new();
+        private readonly List<Func<LeagueClientWebSocketMessage, Task>> _webSocketMessageHandlers = new();
         private ClientWebSocket _socketConnection;
         private CancellationTokenSource _cancellationTokenSource;
 
@@ -41,17 +44,23 @@ namespace SummonMyStrength.Api
 
         internal JsonSerializerOptions JsonSerializerOptions => _jsonSerializerOptions;
 
+        public event Func<Task> Connected;
+
         public bool IsConnected => _socketConnection?.State == WebSocketState.Open;
 
         public ChampionsModule Champions { get; }
         public ChampSelectModule ChampSelect { get; }
         public GameflowModule Gameflow { get; }
+        public ItemSetModule ItemSets { get; set; }
+        public LoginModule Login { get; }
         public MatchmakingModule Matchmaking { get; }
         public PerksModule Perks { get; }
+        public SummonerModule Summoner { get; }
 
         static LeagueClient()
         {
             _jsonSerializerOptions = new(JsonSerializerDefaults.Web);
+            _jsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
             _jsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
 
             _httpMessageHandler = new HttpClientHandler
@@ -69,8 +78,11 @@ namespace SummonMyStrength.Api
             Champions = new ChampionsModule(this);
             ChampSelect = new ChampSelectModule(this);
             Gameflow = new GameflowModule(this);
+            ItemSets = new ItemSetModule(this);
+            Login = new LoginModule(this);
             Matchmaking = new MatchmakingModule(this);
             Perks = new PerksModule(this);
+            Summoner = new SummonerModule(this);
         }
 
         public async Task<bool> ConnectAsync()
@@ -79,7 +91,7 @@ namespace SummonMyStrength.Api
             return true;
         }
 
-        public void AddMessageHandler(Action<LeagueClientWebSocketMessage> handler)
+        public void AddMessageHandler(Func<LeagueClientWebSocketMessage, Task> handler)
         {
             if (!_webSocketMessageHandlers.Contains(handler))
             {
@@ -95,6 +107,11 @@ namespace SummonMyStrength.Api
         private async Task InternalConnectAsync(CancellationToken cancellationToken)
         {
             await TryConnectAsync();
+
+            if (IsConnected)
+            {
+                return;
+            }
 
             do
             {
@@ -143,6 +160,8 @@ namespace SummonMyStrength.Api
                     TaskScheduler.Default);
 
                 await _socketConnection.SendAsync(Encoding.UTF8.GetBytes("[5, \"OnJsonApiEvent\"]"), WebSocketMessageType.Text, true, _cancellationTokenSource.Token);
+
+                await Connected.InvokeAsync();
             }
             catch (WebSocketException ex) when (ex.Message.Contains("Unable to connect"))
             {
@@ -164,16 +183,21 @@ namespace SummonMyStrength.Api
 
             while (true)
             {
-                var receivedMessage = await webSocket.ReceiveAsync(receiveBuffer, cancellationToken);
+                WebSocketReceiveResult receivedMessage;
+
+                try
+                {
+                    receivedMessage = await webSocket.ReceiveAsync(receiveBuffer, cancellationToken);
+                }
+                catch (WebSocketException ex) when (ex.Message == "The remote party closed the WebSocket connection without completing the close handshake.")
+                {
+                    await HandleDisconnectAsync(cancellationToken);
+                    return;
+                }
 
                 if (receivedMessage.MessageType == WebSocketMessageType.Close)
                 {
-                    _socketConnection = null;
-                    HttpClient = null;
-
-                    await Task.Delay(2000, cancellationToken);
-                    await InternalConnectAsync(cancellationToken);
-
+                    await HandleDisconnectAsync(cancellationToken);
                     return;
                 }
                 else if (receivedMessage.MessageType == WebSocketMessageType.Text)
@@ -184,7 +208,7 @@ namespace SummonMyStrength.Api
                     {
                         try
                         {
-                            HandleMessage(currentMessage.ToString());
+                            await HandleMessageAsync(currentMessage.ToString());
                         }
                         catch (Exception ex)
                         {
@@ -197,7 +221,16 @@ namespace SummonMyStrength.Api
             }
         }
 
-        private void HandleMessage(string content)
+        private async Task HandleDisconnectAsync(CancellationToken cancellationToken)
+        {
+            _socketConnection = null;
+            HttpClient = null;
+
+            await Task.Delay(2000, cancellationToken);
+            await InternalConnectAsync(cancellationToken);
+        }
+
+        private async Task HandleMessageAsync(string content)
         {
             var payload = JsonSerializer.Deserialize<JsonElement>(content, _jsonSerializerOptions);
 
@@ -218,7 +251,10 @@ namespace SummonMyStrength.Api
                     eventData.GetProperty("eventType").GetString(),
                     eventData.GetProperty("data"));
 
-            _webSocketMessageHandlers.ForEach(x => x.Invoke(webSocketMessage));
+            foreach (var handler in _webSocketMessageHandlers)
+            {
+                await handler.Invoke(webSocketMessage);
+            }
         }
 
         [SuppressMessage("Interoperability", "CA1416:Validate platform compatibility")]
