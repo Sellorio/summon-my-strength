@@ -19,7 +19,7 @@ namespace SummonMyStrength.Api.Champions
         {
             var version = JsonSerializer.Deserialize<string[]>(await _client.DataDragonHttpClient.GetStringAsync("api/versions.json"))[0];
             var json = await _client.DataDragonHttpClient.GetStringAsync($"cdn/{version}/data/en_US/champion.json");
-            var championData = JsonSerializer.Deserialize<DataWrapper<Dictionary<string, Champion>>>(json, _client.JsonSerializerOptions);
+            var championData = JsonSerializer.Deserialize<DataWrapper<Dictionary<string, Champion>>>(json, LeagueClient.JsonSerializerOptions);
 
             return championData.Data.Values.ToArray();
         }

@@ -34,6 +34,8 @@ namespace SummonMyStrength.Api
 
         private static readonly HttpMessageHandler _httpMessageHandler;
 
+        internal static JsonSerializerOptions JsonSerializerOptions => _jsonSerializerOptions;
+
         private readonly List<Func<LeagueClientWebSocketMessage, Task>> _webSocketMessageHandlers = new();
         private ClientWebSocket _socketConnection;
         private CancellationTokenSource _cancellationTokenSource;
@@ -42,9 +44,8 @@ namespace SummonMyStrength.Api
 
         internal HttpClient DataDragonHttpClient { get; set; }
 
-        internal JsonSerializerOptions JsonSerializerOptions => _jsonSerializerOptions;
-
         public event Func<Task> Connected;
+        public event Func<Task> Disconnected;
 
         public bool IsConnected => _socketConnection?.State == WebSocketState.Open;
 
@@ -59,8 +60,11 @@ namespace SummonMyStrength.Api
 
         static LeagueClient()
         {
-            _jsonSerializerOptions = new(JsonSerializerDefaults.Web);
-            _jsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+            _jsonSerializerOptions = new(JsonSerializerDefaults.Web)
+            {
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+            };
+
             _jsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
 
             _httpMessageHandler = new HttpClientHandler
@@ -72,31 +76,25 @@ namespace SummonMyStrength.Api
 
         public LeagueClient()
         {
-            DataDragonHttpClient = new HttpClient(_httpMessageHandler);
-            DataDragonHttpClient.BaseAddress = new Uri("http://ddragon.leagueoflegends.com/");
+            DataDragonHttpClient = new(_httpMessageHandler)
+            {
+                BaseAddress = new("http://ddragon.leagueoflegends.com/")
+            };
 
-            Champions = new ChampionsModule(this);
-            ChampSelect = new ChampSelectModule(this);
-            Gameflow = new GameflowModule(this);
-            ItemSets = new ItemSetModule(this);
-            Login = new LoginModule(this);
-            Matchmaking = new MatchmakingModule(this);
-            Perks = new PerksModule(this);
-            Summoner = new SummonerModule(this);
+            Champions = new(this);
+            ChampSelect = new(this);
+            Gameflow = new(this);
+            ItemSets = new(this);
+            Login = new(this);
+            Matchmaking = new(this);
+            Perks = new(this);
+            Summoner = new(this);
         }
 
         public async Task<bool> ConnectAsync()
         {
             await InternalConnectAsync(CancellationToken.None);
             return true;
-        }
-
-        public void AddMessageHandler(Func<LeagueClientWebSocketMessage, Task> handler)
-        {
-            if (!_webSocketMessageHandlers.Contains(handler))
-            {
-                _webSocketMessageHandlers.Add(handler);
-            }
         }
 
         public void Dispose()
@@ -121,6 +119,14 @@ namespace SummonMyStrength.Api
             while (!IsConnected);
         }
 
+        internal void AddMessageHandler(Func<LeagueClientWebSocketMessage, Task> handler)
+        {
+            if (!_webSocketMessageHandlers.Contains(handler))
+            {
+                _webSocketMessageHandlers.Add(handler);
+            }
+        }
+
         private async Task TryConnectAsync()
         {
             if (IsConnected)
@@ -139,9 +145,9 @@ namespace SummonMyStrength.Api
             {
                 var authenticationToken = Convert.ToBase64String(Encoding.ASCII.GetBytes("riot:" + status.Password));
 
-                HttpClient = new HttpClient(_httpMessageHandler);
-                HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", authenticationToken);
-                HttpClient.BaseAddress = new Uri("https://127.0.0.1:" + status.PortNumber);
+                HttpClient = new(_httpMessageHandler);
+                HttpClient.DefaultRequestHeaders.Authorization = new("Basic", authenticationToken);
+                HttpClient.BaseAddress = new("https://127.0.0.1:" + status.PortNumber);
 
                 var socketConnection = _socketConnection = new ClientWebSocket();
                 _socketConnection.Options.Credentials = new NetworkCredential("riot", status.Password);
@@ -179,7 +185,7 @@ namespace SummonMyStrength.Api
         {
             var receiveBytes = new byte[1024];
             var receiveBuffer = new ArraySegment<byte>(receiveBytes);
-            StringBuilder currentMessage = new StringBuilder(1000);
+            StringBuilder currentMessage = new(1000);
 
             while (true)
             {
@@ -215,7 +221,7 @@ namespace SummonMyStrength.Api
                             Trace.WriteLine("Error when handling message:\r\n" + ex);
                         }
 
-                        currentMessage = new StringBuilder(1000);
+                        currentMessage = new(1000);
                     }
                 }
             }
@@ -225,6 +231,8 @@ namespace SummonMyStrength.Api
         {
             _socketConnection = null;
             HttpClient = null;
+
+            await Disconnected?.InvokeAsync();
 
             await Task.Delay(2000, cancellationToken);
             await InternalConnectAsync(cancellationToken);

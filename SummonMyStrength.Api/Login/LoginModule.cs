@@ -14,7 +14,7 @@ namespace SummonMyStrength.Api.Login
 
         public async Task<LoginSession> GetSession()
         {
-            return JsonSerializer.Deserialize<LoginSession>(await _client.HttpClient.GetStringAsync("lol-login/v1/session"), _client.JsonSerializerOptions);
+            return JsonSerializer.Deserialize<LoginSession>(await _client.HttpClient.GetStringAsync("lol-login/v1/session"), LeagueClient.JsonSerializerOptions);
         }
     }
 }

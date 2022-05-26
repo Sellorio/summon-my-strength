@@ -23,14 +23,14 @@ namespace SummonMyStrength.Api.Perks
                 {
                     if (x.Action == EventActions.Update && PerkPagesUpdated != null)
                     {
-                        await PerkPagesUpdated.InvokeAsync(JsonSerializer.Deserialize<PerkPage[]>(x.Data.GetRawText(), _client.JsonSerializerOptions));
+                        await PerkPagesUpdated.InvokeAsync(JsonSerializer.Deserialize<PerkPage[]>(x.Data.GetRawText(), LeagueClient.JsonSerializerOptions));
                     }
                 }
                 else if (x.Path.StartsWith("/lol-perks/v1/pages/"))
                 {
                     if (x.Action == EventActions.Update && PerkPageUpdated != null)
                     {
-                        await PerkPageUpdated.InvokeAsync(JsonSerializer.Deserialize<PerkPage>(x.Data.GetRawText(), _client.JsonSerializerOptions));
+                        await PerkPageUpdated.InvokeAsync(JsonSerializer.Deserialize<PerkPage>(x.Data.GetRawText(), LeagueClient.JsonSerializerOptions));
                     }
                 }
             });
@@ -38,7 +38,7 @@ namespace SummonMyStrength.Api.Perks
 
         public async Task<PerkPage> GetCurrentPageAsync()
         {
-            return JsonSerializer.Deserialize<PerkPage>(await _client.HttpClient.GetStringAsync("lol-perks/v1/currentpage"), _client.JsonSerializerOptions);
+            return JsonSerializer.Deserialize<PerkPage>(await _client.HttpClient.GetStringAsync("lol-perks/v1/currentpage"), LeagueClient.JsonSerializerOptions);
         }
 
         public async Task SetCurrentPageAsync(int id)
@@ -49,7 +49,7 @@ namespace SummonMyStrength.Api.Perks
 
         public async Task<PerkPage[]> GetPagesAsync()
         {
-            return JsonSerializer.Deserialize<PerkPage[]>(await _client.HttpClient.GetStringAsync("lol-perks/v1/pages"), _client.JsonSerializerOptions);
+            return JsonSerializer.Deserialize<PerkPage[]>(await _client.HttpClient.GetStringAsync("lol-perks/v1/pages"), LeagueClient.JsonSerializerOptions);
         }
 
         public async Task<PerkPage> CreatePageAsync(PerkPage newPage)
@@ -57,11 +57,11 @@ namespace SummonMyStrength.Api.Perks
             var response =
                 await _client.HttpClient.PostAsync(
                     "lol-perks/v1/pages",
-                    new StringContent(JsonSerializer.Serialize(newPage, _client.JsonSerializerOptions), Encoding.UTF8, "application/json"));
+                    new StringContent(JsonSerializer.Serialize(newPage, LeagueClient.JsonSerializerOptions), Encoding.UTF8, "application/json"));
 
             response.EnsureSuccessStatusCode();
 
-            return JsonSerializer.Deserialize<PerkPage>(await response.Content.ReadAsStringAsync(), _client.JsonSerializerOptions);
+            return JsonSerializer.Deserialize<PerkPage>(await response.Content.ReadAsStringAsync(), LeagueClient.JsonSerializerOptions);
         }
 
         public async Task DeletePageAsync(int id)
@@ -78,12 +78,12 @@ namespace SummonMyStrength.Api.Perks
 
         public async Task<Style[]> GetStylesAsync()
         {
-            return JsonSerializer.Deserialize<Style[]>(await _client.HttpClient.GetStringAsync("lol-perks/v1/styles"), _client.JsonSerializerOptions);
+            return JsonSerializer.Deserialize<Style[]>(await _client.HttpClient.GetStringAsync("lol-perks/v1/styles"), LeagueClient.JsonSerializerOptions);
         }
 
         public async Task<Perk[]> GetPerksAsync()
         {
-            return JsonSerializer.Deserialize<Perk[]>(await _client.HttpClient.GetStringAsync("lol-perks/v1/perks"), _client.JsonSerializerOptions);
+            return JsonSerializer.Deserialize<Perk[]>(await _client.HttpClient.GetStringAsync("lol-perks/v1/perks"), LeagueClient.JsonSerializerOptions);
         }
     }
 }

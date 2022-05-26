@@ -162,6 +162,8 @@ namespace SummonMyStrength.Models
 
         private async Task ChampSelectSessionChanged(ChampSelectSession session)
         {
+            System.Diagnostics.Trace.WriteLine("Phase: " + session.Timer.Phase + " (" + session.Timer.AdjustedTimeLeftInPhase + "ms left)");
+
             if (session.IsSpectating)
             {
                 return;

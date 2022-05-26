@@ -1,0 +1,16 @@
+﻿<MudGrid Class="mt-3" Justify="Justify.Center" Style="align-items: center">
+    <MudItem>
+        <MudText Typo="Typo.subtitle2">Auto Accept?</MudText>
+    </MudItem>
+    <MudItem>
+        <MudSwitch T="bool" Color="Color.Success" Class="mr-0" Checked="DataStore.AutoAcceptReadyChecks" CheckedChanged="CheckedChangedAsync" />
+    </MudItem>
+</MudGrid>
+
+@code {
+    private async Task CheckedChangedAsync(bool newValue)
+    {
+        DataStore.AutoAcceptReadyChecks = newValue;
+        await DataStore.SaveAsync();
+    }
+}

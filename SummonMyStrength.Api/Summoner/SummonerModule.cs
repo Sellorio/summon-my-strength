@@ -14,7 +14,7 @@ namespace SummonMyStrength.Api.Summoner
 
         public async Task<SummonerInfo> GetCurrentSummonerAsync()
         {
-            return JsonSerializer.Deserialize<SummonerInfo>(await _client.HttpClient.GetStringAsync("lol-summoner/v1/current-summoner"), _client.JsonSerializerOptions);
+            return JsonSerializer.Deserialize<SummonerInfo>(await _client.HttpClient.GetStringAsync("lol-summoner/v1/current-summoner"), LeagueClient.JsonSerializerOptions);
         }
     }
 }

@@ -1,0 +1,49 @@
+﻿@page "/"
+@implements IDisposable
+@using SummonMyStrength.Api.Gameflow
+@using SummonMyStrength.Maui.Components.Main
+@using SummonMyStrength.Maui.Components.ReadyCheck
+@inject SummonMyStrength.Api.LeagueClient LeagueClient
+
+<MudDrawerContainer Class="mud-height-full">
+    <Sidebar @bind-Expanded="_expandSidebar" OnOpenRunes="OpenRunes" Disabled="_popupOpen" />
+    <StatusBar OnToggleSidebar="() => _expandSidebar = !_expandSidebar" Disabled="_popupOpen" />
+    <div class="main-content">
+        @switch (_currentPhase)
+        {
+            case GameflowPhase.ReadyCheck:
+                <ReadyCheckPanel />
+                break;
+            default:
+                <IdlePanel />
+                break;
+        }
+    </div>
+</MudDrawerContainer>
+
+@code {
+    private bool _expandSidebar;
+    private bool _popupOpen;
+    private GameflowPhase? _currentPhase;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LeagueClient.ConnectAsync();
+        LeagueClient.Gameflow.GameflowPhaseChanged += GameflowPhaseChanged;
+    }
+
+    public void Dispose()
+    {
+        LeagueClient.Gameflow.GameflowPhaseChanged -= GameflowPhaseChanged;
+    }
+
+    private void OpenRunes()
+    {
+    }
+
+    private async Task GameflowPhaseChanged(GameflowPhase newPhase)
+    {
+        _currentPhase = newPhase;
+        await InvokeAsync(StateHasChanged);
+    }
+}

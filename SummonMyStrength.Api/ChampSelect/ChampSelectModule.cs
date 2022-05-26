@@ -21,7 +21,7 @@ namespace SummonMyStrength.Api.ChampSelect
             {
                 if ((x.Path == "/lol-lobby-team-builder/champ-select/v1/session" || x.Path == "/lol-champ-select/v1/session") && x.Action != EventActions.Delete && SessionChanged != null)
                 {
-                    await SessionChanged.InvokeAsync(JsonSerializer.Deserialize<ChampSelectSession>(x.Data.GetRawText(), _client.JsonSerializerOptions));
+                    await SessionChanged.InvokeAsync(JsonSerializer.Deserialize<ChampSelectSession>(x.Data.GetRawText(), LeagueClient.JsonSerializerOptions));
                 }
             });
         }
@@ -31,7 +31,7 @@ namespace SummonMyStrength.Api.ChampSelect
             return
                 JsonSerializer.Deserialize<ChampSelectSession>(
                     await _client.HttpClient.GetStringAsync("lol-champ-select/v1/session"),
-                    _client.JsonSerializerOptions);
+                    LeagueClient.JsonSerializerOptions);
         }
 
         public async Task SwapWithBenchAsync(int championId)
@@ -56,7 +56,7 @@ namespace SummonMyStrength.Api.ChampSelect
         {
             var responseMessage = await _client.HttpClient.PostAsync($"lol-champ-select/v1/session/trades/{id}/request", new StringContent(""));
             responseMessage.EnsureSuccessStatusCode();
-            return JsonSerializer.Deserialize<ChampSelectTradeContract>(await responseMessage.Content.ReadAsStringAsync(), _client.JsonSerializerOptions);
+            return JsonSerializer.Deserialize<ChampSelectTradeContract>(await responseMessage.Content.ReadAsStringAsync(), LeagueClient.JsonSerializerOptions);
         }
 
         /// <summary>
@@ -69,7 +69,7 @@ namespace SummonMyStrength.Api.ChampSelect
             return
                 JsonSerializer.Deserialize<IList<SkinSelectorSkin>>(
                     await _client.HttpClient.GetStringAsync("lol-champ-select/v1/skin-carousel-skins"),
-                    _client.JsonSerializerOptions);
+                    LeagueClient.JsonSerializerOptions);
         }
 
         /// <summary>
@@ -83,7 +83,7 @@ namespace SummonMyStrength.Api.ChampSelect
             var responseMessage =
                 await _client.HttpClient.PatchAsync(
                     "lol-champ-select/v1/session/my-selection",
-                    new StringContent(JsonSerializer.Serialize(mySelection, _client.JsonSerializerOptions), Encoding.UTF8, "application/json"));
+                    new StringContent(JsonSerializer.Serialize(mySelection, LeagueClient.JsonSerializerOptions), Encoding.UTF8, "application/json"));
 
             responseMessage.EnsureSuccessStatusCode();
         }

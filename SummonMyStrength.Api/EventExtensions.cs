@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace SummonMyStrength.Api
 {
-    internal static class EventExtensions
+    public static class EventExtensions
     {
         public static async Task InvokeAsync(this Func<Task> @event)
         {

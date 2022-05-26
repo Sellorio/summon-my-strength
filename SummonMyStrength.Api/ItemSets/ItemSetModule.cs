@@ -23,7 +23,7 @@ namespace SummonMyStrength.Api.ItemSets
                 if (x.Path.StartsWith("/lol-item-sets/v1/item-sets"))
                 {
                     var summonerId = long.Parse(Regex.Match(x.Path, @"\/lol-item-sets\/v1\/item-sets\/([0-9]+)\/sets").Groups[1].Value);
-                    await ItemSetsChanged.InvokeAsync(summonerId, JsonSerializer.Deserialize<ItemSetList>(x.Data.GetRawText(), _client.JsonSerializerOptions));
+                    await ItemSetsChanged.InvokeAsync(summonerId, JsonSerializer.Deserialize<ItemSetList>(x.Data.GetRawText(), LeagueClient.JsonSerializerOptions));
                 }
             });
         }
@@ -33,7 +33,7 @@ namespace SummonMyStrength.Api.ItemSets
             var response =
                 await _client.HttpClient.PutAsync(
                     $"lol-item-sets/v1/item-sets/{summonerId}/sets",
-                    new StringContent(JsonSerializer.Serialize(itemSets, _client.JsonSerializerOptions), Encoding.UTF8, "application/json"));
+                    new StringContent(JsonSerializer.Serialize(itemSets, LeagueClient.JsonSerializerOptions), Encoding.UTF8, "application/json"));
 
             response.EnsureSuccessStatusCode();
         }
