@@ -1,0 +1,22 @@
+﻿@using SummonMyStrength.Api.ChampSelect
+
+<div class="positions ma-4">
+    @foreach (var item in Enum.GetValues<ChampSelectAssignedPosition>())
+    {
+        var position = item;
+
+        <div class="position @(position == Position ? "selected" : "")"
+             @onclick="() => PositionChanged.InvokeAsync(Position = position)">
+            <img alt="@position" src="@($"img/positions/icon-position-{position.ToString().ToLower()}-blue.png")">
+            <div>@position.ToString()</div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public ChampSelectAssignedPosition? Position { get; set; }
+
+    [Parameter]
+    public EventCallback<ChampSelectAssignedPosition?> PositionChanged { get; set; }
+}

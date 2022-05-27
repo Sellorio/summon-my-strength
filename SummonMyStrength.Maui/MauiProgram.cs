@@ -1,5 +1,6 @@
 ﻿using MudBlazor.Services;
 using SummonMyStrength.Api;
+using SummonMyStrength.Maui.Services;
 
 namespace SummonMyStrength.Maui
 {
@@ -24,6 +25,8 @@ namespace SummonMyStrength.Maui
 
             var leagueClient = new LeagueClient();
             builder.Services.AddSingleton(leagueClient);
+            builder.Services.AddSingleton<IChampSelectSessionAccessor>(new ChampSelectSessionAccessor(leagueClient));
+            builder.Services.AddSingleton<IRuneSetService>(new RuneSetService(leagueClient));
             builder.Services.AddMudServices();
 
             return builder.Build();

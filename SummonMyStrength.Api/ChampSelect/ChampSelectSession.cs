@@ -1,4 +1,7 @@
-﻿namespace SummonMyStrength.Api.ChampSelect
+﻿using System.Linq;
+using System.Text.Json.Serialization;
+
+namespace SummonMyStrength.Api.ChampSelect
 {
     public class ChampSelectSession
     {
@@ -28,5 +31,10 @@
         public ChampSelectPlayerSelection[] TheirTeam { get; set; }
         public ChampSelectTimer Timer { get; set; }
         public ChampSelectTradeContract[] Trades { get; set; }
+
+        private ChampSelectPlayerSelection _player;
+
+        [JsonIgnore]
+        public ChampSelectPlayerSelection Player => _player ??= MyTeam.First(x => x.CellId == LocalPlayerCellId);
     }
 }

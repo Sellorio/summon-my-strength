@@ -3,6 +3,7 @@
 @using SummonMyStrength.Api.Gameflow
 @using SummonMyStrength.Maui.Components.Main
 @using SummonMyStrength.Maui.Components.ReadyCheck
+@using SummonMyStrength.Maui.Components.ChampSelect
 @inject SummonMyStrength.Api.LeagueClient LeagueClient
 
 <MudDrawerContainer Class="mud-height-full">
@@ -13,6 +14,9 @@
         {
             case GameflowPhase.ReadyCheck:
                 <ReadyCheckPanel />
+                break;
+            case GameflowPhase.ChampSelect:
+                <ChampSelectPanel />
                 break;
             default:
                 <IdlePanel />

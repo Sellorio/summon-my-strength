@@ -1,0 +1,33 @@
+﻿@implements IDisposable
+@using SummonMyStrength.Api.ChampSelect
+@inject SummonMyStrength.Maui.Services.IChampSelectSessionAccessor ChampSelectSessionAccessor
+
+<ChampSelectPositionSelect Position="_positionOverride ?? _session?.Player.Position" PositionChanged="NewPositionSelected" />
+<RuneLoadStatusDisplay />
+
+@code {
+    private ChampSelectSession _session;
+    private ChampSelectAssignedPosition? _positionOverride;
+
+    protected override void OnInitialized()
+    {
+        _session = ChampSelectSessionAccessor.Session;
+        ChampSelectSessionAccessor.SessionChanged += SessionChanged;
+    }
+
+    public void Dispose()
+    {
+        ChampSelectSessionAccessor.SessionChanged -= SessionChanged;
+    }
+
+    private async Task SessionChanged(ChampSelectSession from, ChampSelectSession to)
+    {
+        _session = to;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void NewPositionSelected(ChampSelectAssignedPosition? newPosition)
+    {
+        _positionOverride = newPosition;
+    }
+}
