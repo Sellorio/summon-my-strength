@@ -1,0 +1,33 @@
+﻿.champion-grid-item {
+    display: inline-block;
+    width: 100px;
+    text-align: center;
+}
+
+.champion-grid-item img {
+    width: 80px;
+    height: 80px;
+    margin: 10px 10px 0 10px;
+    border: 2px solid transparent;
+    cursor: pointer;
+}
+
+.champion-grid-item .champion-name {
+    font-size: 14px;
+    color: #999;
+    white-space: nowrap;
+    pointer-events: none;
+}
+
+.champion-grid-item.selected img {
+    border-color: #274;
+}
+
+.champion-grid-item.selected .champion-name {
+    color: #3A6;
+}
+
+.champion-grid-item.disabled img {
+    filter: saturate(0.2);
+    cursor: default;
+}

@@ -6,16 +6,11 @@
 @inject IRuneSetService RuneSetService
 
 <div class="rune-load-status ma-4">
-    @if (_loadedChampion != null)
+    @if (RuneSetService.RunesLoadedFor != null)
     {
         <MudText Typo="Typo.h6" Color="Color.Success" style="text-align: center">
-            Runes loaded for @_loadedChampion.Name
+            Runes loaded for @RuneSetService.RunesLoadedFor.Name
         </MudText>
-
-        @if (RuneSetService.HasUnsavedChanges)
-        {
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="() => RuneSetService.SaveRunes()">Save</MudButton>
-        }
     }
     else
     {
@@ -26,19 +21,17 @@
 </div>
 
 @code {
-    private Champion _loadedChampion;
-
     protected override async Task OnInitializedAsync()
     {
         await UpdateAsync();
         ChampSelectSessionAccessor.SessionChanged += SessionChanged;
-        RuneSetService.HasUnsavedChangesChanged += RuneSetHasUnsavedChangesChanged;
+        RuneSetService.RunesLoadedForChanged += UpdateStateAsync;
     }
 
     public void Dispose()
     {
         ChampSelectSessionAccessor.SessionChanged -= SessionChanged;
-        RuneSetService.HasUnsavedChangesChanged -= RuneSetHasUnsavedChangesChanged;
+        RuneSetService.RunesLoadedForChanged -= UpdateStateAsync;
     }
 
     private async Task SessionChanged(ChampSelectSession from, ChampSelectSession to)
@@ -46,7 +39,7 @@
         await UpdateAsync();
     }
 
-    private async Task RuneSetHasUnsavedChangesChanged()
+    private async Task UpdateStateAsync()
     {
         await InvokeAsync(StateHasChanged);
     }
@@ -54,30 +47,24 @@
     private async Task UpdateAsync()
     {
         var player = ChampSelectSessionAccessor.Session?.Player;
-        var championKey =
+        var championId =
             player == null
                 ? 0
                 : (player.ChampionId != default ? player.ChampionId : player.ChampionPickIntent);
 
-        if (championKey == default && _loadedChampion == null
-            || championKey.ToString() == _loadedChampion?.Key)
+        if (championId == default && RuneSetService.RunesLoadedFor == null
+            || championId == RuneSetService.RunesLoadedFor?.Id)
         {
-            return;
+            // no change in selected champion
         }
-
-        if (championKey == default)
+        else if (championId == default)
         {
             await RuneSetService.LoadRunesForChampionAsync(null);
-            _loadedChampion = null;
-            return;
         }
         else
         {
-            var champion = (await LeagueClient.Champions.GetChampionsAsync()).First(x => x.Key == championKey.ToString());
+            var champion = (await LeagueClient.Champions.GetChampionsAsync()).First(x => x.Id == championId);
             await RuneSetService.LoadRunesForChampionAsync(champion);
-            _loadedChampion = champion;
         }
-
-        await InvokeAsync(StateHasChanged);
     }
 }

@@ -1,22 +1,20 @@
 ﻿@using SummonMyStrength.Api.ChampSelect
+@inject SummonMyStrength.Maui.Services.IPickBanService PickBanService
+@inject SummonMyStrength.Maui.Services.IChampSelectSessionAccessor ChampSelectSessionAccessor;
+
+@{
+    var playerPosition = PickBanService.Position ?? ChampSelectSessionAccessor.Session?.Player.Position;
+}
 
 <div class="positions ma-4">
     @foreach (var item in Enum.GetValues<ChampSelectAssignedPosition>())
     {
         var position = item;
 
-        <div class="position @(position == Position ? "selected" : "")"
-             @onclick="() => PositionChanged.InvokeAsync(Position = position)">
+        <div class="position @(position == playerPosition ? "selected" : "")"
+             @onclick="() => PickBanService.SetAssignedPosition(position)">
             <img alt="@position" src="@($"img/positions/icon-position-{position.ToString().ToLower()}-blue.png")">
             <div>@position.ToString()</div>
         </div>
     }
 </div>
-
-@code {
-    [Parameter]
-    public ChampSelectAssignedPosition? Position { get; set; }
-
-    [Parameter]
-    public EventCallback<ChampSelectAssignedPosition?> PositionChanged { get; set; }
-}

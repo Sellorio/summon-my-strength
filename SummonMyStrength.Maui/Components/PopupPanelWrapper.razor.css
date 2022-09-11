@@ -1,0 +1,24 @@
+﻿.popup-panel {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--mud-palette-background);
+    overflow: auto;
+    z-index: 1;
+}
+
+.popup-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.popup-header ::deep .mud-typography {
+    margin: 20px 0 0 20px;
+}
+
+.popup-content {
+    padding: 20px;
+}

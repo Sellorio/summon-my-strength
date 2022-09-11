@@ -7,6 +7,8 @@ namespace SummonMyStrength.Api.Gameflow
     {
         private readonly LeagueClient _client;
 
+        internal Func<GameflowPhase, Task> GameflowPhaseChangedDelegate;
+
         public event Func<GameflowPhase, Task> GameflowPhaseChanged;
 
         internal GameflowModule(LeagueClient client)

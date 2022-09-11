@@ -33,7 +33,7 @@ namespace SummonMyStrength.Api.Champions
 
         public string GetIconUrl(Champion champion)
         {
-            return $"{_client.DataDragonHttpClient.BaseAddress.AbsoluteUri}/cdn/{_dataDragonVersion}/img/champion/{champion.Image.Full}";
+            return $"{_client.DataDragonHttpClient.BaseAddress.AbsoluteUri}cdn/{_dataDragonVersion}/img/champion/{champion.Image.Full}";
         }
     }
 }

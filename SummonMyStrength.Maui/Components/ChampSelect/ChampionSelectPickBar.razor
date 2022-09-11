@@ -1,0 +1,146 @@
+﻿@implements IDisposable
+@using SummonMyStrength.Api.ChampSelect
+@using SummonMyStrength.Api.Champions
+@using SummonMyStrength.Maui.Components.Common.Champions
+@inject SummonMyStrength.Api.LeagueClient LeagueClient
+@inject SummonMyStrength.Maui.Services.IChampSelectSessionAccessor ChampSelectSessionAccessor
+@inject SummonMyStrength.Maui.Services.IPickBanService PickBanService
+
+@if (_champions != null && _champions.Any())
+{
+    <MudText Typo="Typo.h6" Align="Align.Center">
+        Select a champion to @(_isBanning ?? false ? "ban" : "pick"):
+    </MudText>
+    <div style="text-align: center">
+        @foreach (var item in _champions)
+        {
+            var champion = item;
+
+            <ChampionGridItem Champion="champion"
+                              OnClick="() => SelectChampionAsync(champion)"
+                              Selected="champion == (_isBanning ?? false ? _selectedBan : _selectedPick)"
+                              Disabled="IsChampionDisbled(champion)" />
+        }
+    </div>
+}
+
+@code {
+    private List<Champion> _champions;
+    private bool? _isBanning;
+    private Champion _selectedPick;
+    private Champion _selectedBan;
+
+    protected override async Task OnInitializedAsync()
+    {
+        ChampSelectSessionAccessor.SessionChanged += ChampSelectSessionChanged;
+        PickBanService.AssignedPositionChanged += AssignedPositionChanged;
+
+        if (ChampSelectSessionAccessor.Session != null)
+        {
+            await ChampSelectSessionChanged(null, ChampSelectSessionAccessor.Session);
+        }
+    }
+
+    public void Dispose()
+    {
+        ChampSelectSessionAccessor.SessionChanged -= ChampSelectSessionChanged;
+        PickBanService.AssignedPositionChanged -= AssignedPositionChanged;
+    }
+
+    private async Task ChampSelectSessionChanged(ChampSelectSession from, ChampSelectSession to)
+    {
+        if (to != null)
+        {
+            if (_isBanning != to.IsBanning)
+            {
+                await UpdateChampionsListAsync();
+            }
+
+            var selectedChampionId = to.Player.ChampionId == default ? to.Player.ChampionPickIntent : to.Player.ChampionId;
+
+            if (selectedChampionId != default && (_selectedPick == null || _selectedPick.Id != selectedChampionId))
+            {
+                _selectedPick = _champions.FirstOrDefault(x => x.Id == selectedChampionId);
+            }
+        }
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task SelectChampionAsync(Champion champion)
+    {
+        try
+        {
+            if (ChampSelectSessionAccessor.Session.IsBanning)
+            {
+                _selectedBan = champion;
+                await PickBanService.BanChampionAsync(champion);
+            }
+            else
+            {
+                _selectedPick = champion;
+                await PickBanService.PickChampionAsync(champion);
+            }
+        }
+        catch
+        {
+        }
+    }
+
+    private async Task AssignedPositionChanged()
+    {
+        await UpdateChampionsListAsync();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task UpdateChampionsListAsync()
+    {
+        var session = ChampSelectSessionAccessor.Session;
+
+        if (session == null)
+        {
+            return;
+        }
+
+        var pick = session.Player.ChampionId == default ? session.Player.ChampionPickIntent : session.Player.ChampionId;
+
+        if (session.IsBanning)
+        {
+            _isBanning = true;
+            _champions = await PickBanService.GetRecentBansAsync();
+        }
+        else
+        {
+            _isBanning = false;
+            _champions = await PickBanService.GetRecentPicksAsync();
+            _selectedPick = _champions.FirstOrDefault(x => x.Id == pick);
+        }
+    }
+
+    private bool IsChampionDisbled(Champion champion)
+    {
+        var session = ChampSelectSessionAccessor.Session;
+
+        if (session == null)
+        {
+            return true;
+        }
+
+        if (session.IsBanning)
+        {
+            return
+                session.Actions.SelectMany(x => x).Any(x => x.Type == ActionType.Ban && x.ChampionId == champion.Id) ||
+                session.MyTeam.Any(x => x.ChampionPickIntent == champion.Id);
+
+        }
+        else
+        {
+            return
+                session.Actions.SelectMany(x => x).Any(x =>
+                    x.Type == ActionType.Ban && x.ChampionId == champion.Id ||
+                    x.ActorCellId == session.LocalPlayerCellId && x.Type == ActionType.Pick && x.Completed == true) ||
+                session.MyTeam.Any(x => x.CellId != session.LocalPlayerCellId && x.ChampionId == champion.Id) ||
+                session.TheirTeam.Any(x => x.ChampionId == champion.Id);
+        }
+    }
+}

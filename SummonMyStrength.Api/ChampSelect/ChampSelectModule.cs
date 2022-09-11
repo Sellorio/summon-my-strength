@@ -11,6 +11,8 @@ namespace SummonMyStrength.Api.ChampSelect
     {
         private readonly LeagueClient _client;
 
+        internal Func<ChampSelectSession, Task> SessionChangedDelegate => SessionChanged;
+
         public event Func<ChampSelectSession, Task> SessionChanged;
 
         internal ChampSelectModule(LeagueClient client)
@@ -19,7 +21,7 @@ namespace SummonMyStrength.Api.ChampSelect
 
             _client.AddMessageHandler(async x =>
             {
-                if ((x.Path == "/lol-lobby-team-builder/champ-select/v1/session" || x.Path == "/lol-champ-select/v1/session") && x.Action != EventActions.Delete && SessionChanged != null)
+                if ((x.Path == "/lol-lobby-team-builder/champ-select/v1/session" || x.Path == "/lol-champ-select/v1/session" || x.Path == "/lol-champ-select-legacy/v1/session") && x.Action != EventActions.Delete && SessionChanged != null)
                 {
                     await SessionChanged.InvokeAsync(JsonSerializer.Deserialize<ChampSelectSession>(x.Data.GetRawText(), LeagueClient.JsonSerializerOptions));
                 }
@@ -85,7 +87,22 @@ namespace SummonMyStrength.Api.ChampSelect
                     "lol-champ-select/v1/session/my-selection",
                     new StringContent(JsonSerializer.Serialize(mySelection, LeagueClient.JsonSerializerOptions), Encoding.UTF8, "application/json"));
 
-            responseMessage.EnsureSuccessStatusCode();
+            await responseMessage.LogIfFailedAndThrowAsync();
+        }
+
+        /// <summary>
+        /// Updates an action for the player. This can be used to update champion picks and bans.
+        /// </summary>
+        /// <param name="action">The action data to update.</param>
+        /// <returns>The task.</returns>
+        public async Task PatchActionAsync(long id, ChampSelectAction action)
+        {
+            var responseMessage =
+                await _client.HttpClient.PatchAsync(
+                    $"lol-champ-select/v1/session/actions/{id}",
+                    new StringContent(JsonSerializer.Serialize(action, LeagueClient.JsonSerializerOptions), Encoding.UTF8, "application/json"));
+
+            await responseMessage.LogIfFailedAndThrowAsync();
         }
     }
 }

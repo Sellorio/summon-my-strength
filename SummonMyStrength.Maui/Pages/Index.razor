@@ -1,14 +1,16 @@
 ﻿@page "/"
 @implements IDisposable
 @using SummonMyStrength.Api.Gameflow
+@using SummonMyStrength.Maui.Components
+@using SummonMyStrength.Maui.Components.InGame
 @using SummonMyStrength.Maui.Components.Main
 @using SummonMyStrength.Maui.Components.ReadyCheck
 @using SummonMyStrength.Maui.Components.ChampSelect
 @inject SummonMyStrength.Api.LeagueClient LeagueClient
 
 <MudDrawerContainer Class="mud-height-full">
-    <Sidebar @bind-Expanded="_expandSidebar" OnOpenRunes="OpenRunes" Disabled="_popupOpen" />
-    <StatusBar OnToggleSidebar="() => _expandSidebar = !_expandSidebar" Disabled="_popupOpen" />
+    <Sidebar @bind-Expanded="_expandSidebar" OnOpenRunes="() => _popup = Popup.Runes" />
+    <StatusBar OnToggleSidebar="() => _expandSidebar = !_expandSidebar" />
     <div class="main-content">
         @switch (_currentPhase)
         {
@@ -18,31 +20,34 @@
             case GameflowPhase.ChampSelect:
                 <ChampSelectPanel />
                 break;
+            case GameflowPhase.InProgress:
+                <SupportMinionCapTracker />
+                break;
             default:
                 <IdlePanel />
                 break;
         }
+
+        <PopupRenderer @bind-Popup="_popup" />
     </div>
 </MudDrawerContainer>
 
 @code {
     private bool _expandSidebar;
-    private bool _popupOpen;
+    private Popup _popup;
     private GameflowPhase? _currentPhase;
 
     protected override async Task OnInitializedAsync()
     {
         await LeagueClient.ConnectAsync();
+        _currentPhase = await LeagueClient.Gameflow.GetGameflowPhaseAsync();
+
         LeagueClient.Gameflow.GameflowPhaseChanged += GameflowPhaseChanged;
     }
 
     public void Dispose()
     {
         LeagueClient.Gameflow.GameflowPhaseChanged -= GameflowPhaseChanged;
-    }
-
-    private void OpenRunes()
-    {
     }
 
     private async Task GameflowPhaseChanged(GameflowPhase newPhase)

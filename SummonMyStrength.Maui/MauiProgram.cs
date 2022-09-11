@@ -24,9 +24,12 @@ namespace SummonMyStrength.Maui
 #endif
 
             var leagueClient = new LeagueClient();
+            var champSelectSessionAccessor = new ChampSelectSessionAccessor(leagueClient);
             builder.Services.AddSingleton(leagueClient);
-            builder.Services.AddSingleton<IChampSelectSessionAccessor>(new ChampSelectSessionAccessor(leagueClient));
+            builder.Services.AddSingleton<IChampSelectSessionAccessor>(champSelectSessionAccessor);
             builder.Services.AddSingleton<IRuneSetService>(new RuneSetService(leagueClient));
+            builder.Services.AddSingleton<IPickBanService>(new PickBanService(leagueClient, champSelectSessionAccessor));
+            builder.Services.AddSingleton<IGameInfoAccessor>(new GameInfoAccessor(leagueClient));
             builder.Services.AddMudServices();
 
             return builder.Build();

@@ -9,12 +9,13 @@ namespace SummonMyStrength.Maui.Services
     {
         private readonly LeagueClient _leagueClient;
 
-        private Champion _runesLoadedForChampion;
+        private bool _switchingRunes;
+        private Champion _runesLoadingFor;
         private DateTime _runesLoadedAt;
 
-        public bool HasUnsavedChanges { get; private set; }
+        public Champion RunesLoadedFor { get; private set; }
 
-        public event Func<Task> HasUnsavedChangesChanged;
+        public event Func<Task> RunesLoadedForChanged;
 
         public RuneSetService(LeagueClient leagueClient)
         {
@@ -22,13 +23,8 @@ namespace SummonMyStrength.Maui.Services
 
             _leagueClient.Disconnected += async () =>
             {
-                _runesLoadedForChampion = null;
-
-                if (HasUnsavedChanges)
-                {
-                    HasUnsavedChanges = false;
-                    await HasUnsavedChangesChanged.InvokeAsync();
-                }
+                RunesLoadedFor = null;
+                await RunesLoadedForChanged.InvokeAsync();
             };
 
             _leagueClient.Gameflow.GameflowPhaseChanged += async newPhase =>
@@ -36,37 +32,34 @@ namespace SummonMyStrength.Maui.Services
                 if (newPhase == GameflowPhase.ChampSelect || newPhase == GameflowPhase.EndOfGame)
                 {
                     await LoadRunesForChampionAsync(null);
-
-                    if (HasUnsavedChanges)
-                    {
-                        HasUnsavedChanges = false;
-                        await HasUnsavedChangesChanged.InvokeAsync();
-                    }
                 }
             };
 
             _leagueClient.Perks.PerkPageUpdated += async _ =>
             {
-                if (_runesLoadedForChampion != null && HasUnsavedChanges == false && DateTime.Now - _runesLoadedAt > TimeSpan.FromSeconds(2))
+                if (RunesLoadedFor != null && !_switchingRunes && DateTime.Now - _runesLoadedAt > TimeSpan.FromSeconds(2))
                 {
-                    HasUnsavedChanges = true;
-                    await HasUnsavedChangesChanged.InvokeAsync();
+                    await SaveRunes();
                 }
             };
 
             _leagueClient.Perks.PerkPagesUpdated += async _ =>
             {
-                if (_runesLoadedForChampion != null && HasUnsavedChanges == false && DateTime.Now - _runesLoadedAt > TimeSpan.FromSeconds(2))
+                if (RunesLoadedFor != null && !_switchingRunes && DateTime.Now - _runesLoadedAt > TimeSpan.FromSeconds(2))
                 {
-                    HasUnsavedChanges = true;
-                    await HasUnsavedChangesChanged.InvokeAsync();
+                    await SaveRunes();
                 }
             };
         }
 
         public async Task LoadRunesForChampionAsync(Champion champion)
         {
-            if (champion == _runesLoadedForChampion)
+            if (champion == RunesLoadedFor || champion == _runesLoadingFor)
+            {
+                return;
+            }
+
+            if (!_leagueClient.IsConnected)
             {
                 return;
             }
@@ -75,43 +68,41 @@ namespace SummonMyStrength.Maui.Services
 
             if (champion != null)
             {
-                var key = int.Parse(champion.Key);
-
-                if (DataStore.RunePages.ContainsKey(key))
+                if (DataStore.RunePages.ContainsKey(champion.Id))
                 {
-                    runePages = DataStore.RunePages[key];
+                    runePages = DataStore.RunePages[champion.Id];
                 }
             }
+
+            _switchingRunes = true;
+            _runesLoadingFor = champion;
 
             await _leagueClient.Perks.DeleteAllPagesAsync();
 
             foreach (var page in runePages)
             {
+                // runes being changed in another thread to a new champ
+                if (_runesLoadingFor != champion)
+                {
+                    return;
+                }
+
                 page.Id = (await _leagueClient.Perks.CreatePageAsync(page)).Id;
             }
 
-            _runesLoadedForChampion = champion;
+            RunesLoadedFor = champion;
             _runesLoadedAt = DateTime.Now;
+            _switchingRunes = false;
+            _runesLoadingFor = null;
+
+            await RunesLoadedForChanged.InvokeAsync();
         }
 
-        public async Task SaveRunes()
+        private async Task SaveRunes()
         {
-            if (_runesLoadedForChampion == null)
-            {
-                return;
-            }
-
-            if (!HasUnsavedChanges)
-            {
-                return;
-            }
-
             var pages = await _leagueClient.Perks.GetPagesAsync();
-            DataStore.RunePages[int.Parse(_runesLoadedForChampion.Key)] = pages.Where(x => x.IsDeletable).ToArray();
+            DataStore.RunePages[RunesLoadedFor.Id] = pages.Where(x => x.IsDeletable).ToArray();
             await DataStore.SaveAsync();
-
-            HasUnsavedChanges = false;
-            await HasUnsavedChangesChanged.InvokeAsync();
         }
     }
 }

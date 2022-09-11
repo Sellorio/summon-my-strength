@@ -23,7 +23,7 @@
     {
         if (DataStore.AutoAcceptReadyChecks
             && newReadyCheck.PlayerResponse == Api.Matchmaking.ReadyCheckPlayerResponse.None
-            && newReadyCheck.Timer >= 3)
+            && newReadyCheck.Timer >= 2)
         {
             await LeagueClient.Matchmaking.AcceptReadyCheckAsync();
         }

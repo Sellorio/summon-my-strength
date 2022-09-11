@@ -18,7 +18,13 @@ namespace SummonMyStrength.Api
         {
             if (@event != null)
             {
-                await Task.WhenAll(@event.GetInvocationList().Select(x => ((Func<TParam1, Task>)x).Invoke(parameter1)));
+                try
+                {
+                    await Task.WhenAll(@event.GetInvocationList().Select(x => ((Func<TParam1, Task>)x).Invoke(parameter1)));
+                }
+                catch
+                {
+                }
             }
         }
 

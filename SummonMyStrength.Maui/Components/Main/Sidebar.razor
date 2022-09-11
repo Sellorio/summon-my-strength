@@ -1,6 +1,6 @@
-﻿<MudDrawer Fixed="false" Elevation="1" Variant="DrawerVariant.Mini" OpenMiniOnHover="true" Style="z-index: 9999" Open="Expanded" OpenChanged="x => { Expanded = x; return ExpandedChanged.InvokeAsync(x); }">
+﻿<MudDrawer Fixed="false" Elevation="1" Variant="DrawerVariant.Mini" Style="z-index: 9999" Open="Expanded" OpenChanged="x => { Expanded = x; return ExpandedChanged.InvokeAsync(x); }">
     <MudNavMenu>
-        <MudNavLink Icon="@Icons.Outlined.Diamond" OnClick="OnOpenRunes" Disabled="Disabled">Runes</MudNavLink>
+        <MudNavLink title="Runes" Icon="@Icons.Outlined.OfflineBolt" OnClick="OnOpenRunes" Disabled="Disabled">Runes</MudNavLink>
     </MudNavMenu>
 </MudDrawer>
 

@@ -23,6 +23,7 @@ using SummonMyStrength.Api.Champions;
 using SummonMyStrength.Api.Summoner;
 using SummonMyStrength.Api.Login;
 using SummonMyStrength.Api.ItemSets;
+using System.IO;
 
 namespace SummonMyStrength.Api
 {
@@ -93,7 +94,17 @@ namespace SummonMyStrength.Api
 
         public async Task<bool> ConnectAsync()
         {
+            // only exists once successfully connected
             await InternalConnectAsync(CancellationToken.None);
+
+            var phase = await Gameflow.GetGameflowPhaseAsync();
+            await Gameflow.GameflowPhaseChangedDelegate.InvokeAsync(phase);
+
+            if (phase == GameflowPhase.ChampSelect)
+            {
+                await ChampSelect.SessionChangedDelegate.InvokeAsync(await ChampSelect.GetSessionAsync());
+            }
+
             return true;
         }
 

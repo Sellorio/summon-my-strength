@@ -5,6 +5,7 @@ namespace SummonMyStrength.Api.ChampSelect
 {
     public class ChampSelectSession
     {
+        public ChampSelectAction[][] Actions { get; set; }
         public bool AllowBattleBoost { get; set; }
         public bool AllowDuplicatePicks { get; set; }
         public bool AllowLockedEvents { get; set; }
@@ -36,5 +37,8 @@ namespace SummonMyStrength.Api.ChampSelect
 
         [JsonIgnore]
         public ChampSelectPlayerSelection Player => _player ??= MyTeam.First(x => x.CellId == LocalPlayerCellId);
+
+        [JsonIgnore]
+        public bool IsBanning => Timer.Phase != "PLANNING" && Actions.SelectMany(x => x).Any(x => x.Type == ActionType.Ban && x.ActorCellId == LocalPlayerCellId && x.IsInProgress.Value);
     }
 }
