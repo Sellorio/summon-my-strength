@@ -19,7 +19,7 @@ namespace SummonMyStrength.Maui.Services
                     ServerCertificateCustomValidationCallback = (a, b, c, d) => true
                 })
             {
-                BaseAddress = new Uri("https://127.0.0.1:2999/liveclientdata")
+                BaseAddress = new Uri("https://127.0.0.1:2999/liveclientdata/")
             };
 
         private string _gameInfoRaw;
@@ -62,7 +62,22 @@ namespace SummonMyStrength.Maui.Services
 
         private async Task UpdateGameInfoAsync()
         {
-            var httpResponse = await _httpClient.GetAsync("allgamedata");
+            HttpResponseMessage httpResponse;
+
+            try
+            {
+                httpResponse = await _httpClient.GetAsync("allgamedata");
+            }
+            catch
+            {
+                if (GameInfo != null)
+                {
+                    _gameInfoRaw = null;
+                    GameInfo = null;
+                }
+
+                return;
+            }
 
             if (!httpResponse.IsSuccessStatusCode)
             {

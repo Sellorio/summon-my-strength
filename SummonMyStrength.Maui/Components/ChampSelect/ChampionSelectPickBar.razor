@@ -129,7 +129,7 @@
         if (session.IsBanning)
         {
             return
-                session.Actions.SelectMany(x => x).Any(x => x.Type == ActionType.Ban && x.ChampionId == champion.Id) ||
+                session.Actions.SelectMany(x => x).Any(x => x.Type == ActionType.Ban && x.ChampionId == champion.Id && x.ActorCellId != session.LocalPlayerCellId) ||
                 session.MyTeam.Any(x => x.ChampionPickIntent == champion.Id);
 
         }

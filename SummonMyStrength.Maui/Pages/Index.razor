@@ -2,7 +2,6 @@
 @implements IDisposable
 @using SummonMyStrength.Api.Gameflow
 @using SummonMyStrength.Maui.Components
-@using SummonMyStrength.Maui.Components.InGame
 @using SummonMyStrength.Maui.Components.Main
 @using SummonMyStrength.Maui.Components.ReadyCheck
 @using SummonMyStrength.Maui.Components.ChampSelect
@@ -21,7 +20,6 @@
                 <ChampSelectPanel />
                 break;
             case GameflowPhase.InProgress:
-                <SupportMinionCapTracker />
                 break;
             default:
                 <IdlePanel />
@@ -39,10 +37,8 @@
 
     protected override async Task OnInitializedAsync()
     {
-        await LeagueClient.ConnectAsync();
-        _currentPhase = await LeagueClient.Gameflow.GetGameflowPhaseAsync();
-
         LeagueClient.Gameflow.GameflowPhaseChanged += GameflowPhaseChanged;
+        await LeagueClient.ConnectAsync();
     }
 
     public void Dispose()

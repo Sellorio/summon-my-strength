@@ -23,6 +23,7 @@ namespace SummonMyStrength.Maui.Services.LiveApi
         [JsonPropertyName("team")]
         public string TeamString { get; set; }
 
+        [JsonIgnore]
         public ChampSelectAssignedPosition? Position
         {
             get => PositionString?.ToLower() switch
@@ -48,6 +49,7 @@ namespace SummonMyStrength.Maui.Services.LiveApi
             };
         }
 
+        [JsonIgnore]
         public PlayerTeam? Team
         {
             get => PositionString?.ToLower() switch

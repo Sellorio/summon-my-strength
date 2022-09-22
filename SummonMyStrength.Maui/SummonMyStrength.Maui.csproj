@@ -61,4 +61,8 @@
 	  <ProjectReference Include="..\SummonMyStrength.Api\SummonMyStrength.Api.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Folder Include="Components\InGame\" />
+	</ItemGroup>
+
 </Project>

@@ -12,6 +12,7 @@ namespace SummonMyStrength.Maui.Services.LiveApi
         public string Acer { get; set; }
         public string AcingTeam { get; set; }
 
+        [JsonIgnore]
         public GameEventType? Type
         {
             get => TypeString?.ToLower() switch
