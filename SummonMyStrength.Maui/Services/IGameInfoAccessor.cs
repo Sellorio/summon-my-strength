@@ -6,5 +6,6 @@ namespace SummonMyStrength.Maui.Services
     {
         event Func<Task> GameInfoChanged;
         GameInfo GameInfo { get; }
+        bool SaveStatisticsOnEnd { get; set; }
     }
 }

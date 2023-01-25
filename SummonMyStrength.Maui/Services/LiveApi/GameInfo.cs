@@ -9,5 +9,8 @@ namespace SummonMyStrength.Maui.Services.LiveApi
         public GameEvents Events { get; set; }
         [JsonPropertyName("gameData")]
         public GameSettings GameSettings { get; set; }
+
+        [JsonIgnore]
+        public Player CurrentPlayer => AllPlayers.First(x => x.SummonerName == ActivePlayer.SummonerName);
     }
 }

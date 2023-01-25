@@ -1,5 +1,12 @@
 ﻿.main-content {
     position: relative;
-    height: calc(100% - 64px);
-    max-height: calc(100% - 64px);
+    height: calc(100% - var(--mud-appbar-height) + var(--mud-appbar-height)/8);
+    max-height: calc(100% - var(--mud-appbar-height) + var(--mud-appbar-height)/8);
+}
+
+@media(min-width: 600px) {
+    .main-content {
+        height: calc(100% - var(--mud-appbar-height));
+        max-height: calc(100% - var(--mud-appbar-height));
+    }
 }

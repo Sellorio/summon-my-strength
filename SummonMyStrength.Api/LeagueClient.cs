@@ -24,6 +24,7 @@ using SummonMyStrength.Api.Summoner;
 using SummonMyStrength.Api.Login;
 using SummonMyStrength.Api.ItemSets;
 using System.IO;
+using SummonMyStrength.Api.Items;
 
 namespace SummonMyStrength.Api
 {
@@ -51,6 +52,7 @@ namespace SummonMyStrength.Api
         public bool IsConnected => _socketConnection?.State == WebSocketState.Open;
 
         public ChampionsModule Champions { get; }
+        public ItemsModule Items { get; }
         public ChampSelectModule ChampSelect { get; }
         public GameflowModule Gameflow { get; }
         public ItemSetModule ItemSets { get; set; }
@@ -83,6 +85,7 @@ namespace SummonMyStrength.Api
             };
 
             Champions = new(this);
+            Items = new(this);
             ChampSelect = new(this);
             Gameflow = new(this);
             ItemSets = new(this);
