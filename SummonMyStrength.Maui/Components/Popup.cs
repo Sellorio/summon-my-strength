@@ -3,6 +3,7 @@
     public enum Popup
     {
         None,
-        Runes
+        Runes,
+        HandsFree
     }
 }

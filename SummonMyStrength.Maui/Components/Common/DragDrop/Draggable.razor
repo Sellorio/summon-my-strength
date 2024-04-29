@@ -1,0 +1,16 @@
+﻿@typeparam T
+@inject IDragDropService DragDropService
+@inject IJSRuntime JS
+
+@if (!DisableDropsite)
+{
+    <DragDropsite @ref="LocalDropsite" T="T" GroupKey="GroupKey" OnDrop="OnDropAsync" />
+}
+
+<div onmousedown="@(Disabled ? "" : $"wyPrepareForDrag(this, event)")">
+    <div @ref="ChildRef" class="child-content @(Disabled ? "disabled" : "")">
+        @ChildContent
+    </div>
+    <button style="display:none" @onclick="StartDragAsync"></button>
+    <button style="display:none" @onclick="EndDragAsync"></button>
+</div>

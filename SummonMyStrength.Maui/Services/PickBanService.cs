@@ -45,7 +45,7 @@ namespace SummonMyStrength.Maui.Services
             };
         }
 
-        public async Task BanChampionAsync(Champion champion)
+        public async Task BanChampionAsync(Champion champion, bool lockIn = true)
         {
             var action = _champSelectSessionAccessor.Session.Actions.SelectMany(x => x).FirstOrDefault(x => x.Type == ActionType.Ban && x.ActorCellId == _champSelectSessionAccessor.Session.LocalPlayerCellId);
 
@@ -54,7 +54,7 @@ namespace SummonMyStrength.Maui.Services
                 return;
             }
 
-            await _leagueClient.ChampSelect.PatchActionAsync(action.Id.Value, new ChampSelectAction { ChampionId = champion.Id, Completed = true });
+            await _leagueClient.ChampSelect.PatchActionAsync(action.Id.Value, new ChampSelectAction { ChampionId = champion.Id, Completed = lockIn });
         }
 
         public async Task<List<Champion>> GetRecentBansAsync()
@@ -109,7 +109,7 @@ namespace SummonMyStrength.Maui.Services
             }
         }
 
-        public async Task PickChampionAsync(Champion champion)
+        public async Task PickChampionAsync(Champion champion, bool lockIn = true)
         {
             var action = _champSelectSessionAccessor.Session.Actions.SelectMany(x => x).FirstOrDefault(x => x.Type == ActionType.Pick && x.ActorCellId == _champSelectSessionAccessor.Session.LocalPlayerCellId);
 
@@ -118,7 +118,7 @@ namespace SummonMyStrength.Maui.Services
                 return;
             }
 
-            await _leagueClient.ChampSelect.PatchActionAsync(action.Id.Value, new ChampSelectAction { ChampionId = champion.Id, Completed = action.IsInProgress });
+            await _leagueClient.ChampSelect.PatchActionAsync(action.Id.Value, new ChampSelectAction { ChampionId = champion.Id, Completed = action.IsInProgress == true && lockIn });
         }
 
         private async Task SavePicksAsync(ChampSelectSession session)

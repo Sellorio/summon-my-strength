@@ -25,6 +25,7 @@ using SummonMyStrength.Api.Login;
 using SummonMyStrength.Api.ItemSets;
 using System.IO;
 using SummonMyStrength.Api.Items;
+using SummonMyStrength.Api.SummonerSpells;
 
 namespace SummonMyStrength.Api
 {
@@ -60,6 +61,7 @@ namespace SummonMyStrength.Api
         public MatchmakingModule Matchmaking { get; }
         public PerksModule Perks { get; }
         public SummonerModule Summoner { get; }
+        public SummonerSpellsModule SummonerSpells { get; }
 
         static LeagueClient()
         {
@@ -93,6 +95,7 @@ namespace SummonMyStrength.Api
             Matchmaking = new(this);
             Perks = new(this);
             Summoner = new(this);
+            SummonerSpells = new(this);
         }
 
         public async Task<bool> ConnectAsync()

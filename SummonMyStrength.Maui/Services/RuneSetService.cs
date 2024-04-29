@@ -77,7 +77,15 @@ namespace SummonMyStrength.Maui.Services
             _switchingRunes = true;
             _runesLoadingFor = champion;
 
-            await _leagueClient.Perks.DeleteAllPagesAsync();
+            var existingRunePages = await _leagueClient.Perks.GetPagesAsync();
+
+            foreach (var page in existingRunePages)
+            {
+                if (!page.Name.StartsWith("QP ") && page.IsDeletable)
+                {
+                    await _leagueClient.Perks.DeletePageAsync(page.Id);
+                }
+            }
 
             foreach (var page in runePages)
             {
@@ -101,7 +109,7 @@ namespace SummonMyStrength.Maui.Services
         private async Task SaveRunes()
         {
             var pages = await _leagueClient.Perks.GetPagesAsync();
-            DataStore.RunePages[RunesLoadedFor.Id] = pages.Where(x => x.IsDeletable).ToArray();
+            DataStore.RunePages[RunesLoadedFor.Id] = pages.Where(x => !x.Name.StartsWith("QP ") && x.IsDeletable).ToArray();
             await DataStore.SaveAsync();
         }
     }

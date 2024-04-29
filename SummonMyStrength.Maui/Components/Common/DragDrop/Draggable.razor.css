@@ -1,0 +1,17 @@
+﻿.child-content {
+    user-select: none;
+    background: white;
+    cursor: grab;
+}
+
+.child-content.dragging {
+    position: fixed;
+    box-shadow: 2px 2px 10px 0 rgba(0,0,0,0.2);
+    cursor: grabbing;
+    pointer-events: none;
+    z-index: 99999;
+}
+
+.child-content.disabled {
+    cursor: unset;
+}

@@ -1,0 +1,42 @@
+.spell-icon {
+    width: 30px;
+    height: 30px;
+}
+
+.champion-icon {
+    display: block;
+    width: 40px;
+    height: 40px;
+}
+
+.self ::deep .mud-tabs-panels {
+    padding: 10px;
+    background: rgb(60,61,73);
+}
+
+.ban-item {
+    position: relative;
+}
+
+.ban-item img {
+    display: block;
+}
+
+.ban-item ::deep .ban-remove-indicator {
+    display: none;
+}
+
+.ban-item:hover ::deep .ban-remove-indicator {
+    display: block;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 40px;
+    height: 40px;
+    padding: 5px;
+    background: rgba(255,255,255,0.3);
+}
+
+.preference-wrapper {
+    background: rgb(60,61,73);
+}

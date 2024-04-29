@@ -48,11 +48,19 @@ namespace SummonMyStrength.Maui
             set => _data.AutoAcceptReadyChecks = value;
         }
 
+        public static bool HandsFreeMode
+        {
+            get => _data.HandsFreeMode;
+            set => _data.HandsFreeMode = value;
+        }
+
         public static Dictionary<ChampSelectAssignedPosition, List<RecentPick>> RecentPicks => _data.RecentPicks;
 
         public static Dictionary<int, List<RecentPick>> RecentBansByPick => _data.RecentBansByPick;
 
         public static Dictionary<ChampSelectAssignedPosition, List<RecentPick>> RecentBansByRole => _data.RecentBansByPosition;
+
+        public static Dictionary<ChampSelectAssignedPosition, List<HandsFreePreference>> HandsFreePreferences => _data.HandsFreePreferences;
 
         static DataStore()
         {
@@ -61,11 +69,19 @@ namespace SummonMyStrength.Maui
                     ? JsonSerializer.Deserialize<DataStoreObject>(File.ReadAllText(_dataPath))
                     : new DataStoreObject();
 
-            _data.RunePages ??= new();
-            _data.PreferredAramChampions ??= new();
-            _data.RecentPicks ??= new();
-            _data.RecentBansByPick ??= new();
-            _data.RecentBansByPosition ??= new();
+            _data.RunePages ??= [];
+            _data.PreferredAramChampions ??= [];
+            _data.RecentPicks ??= [];
+            _data.RecentBansByPick ??= [];
+            _data.RecentBansByPosition ??= [];
+            _data.HandsFreePreferences ??= new Dictionary<ChampSelectAssignedPosition, List<HandsFreePreference>>
+            {
+                { ChampSelectAssignedPosition.Top, [] },
+                { ChampSelectAssignedPosition.Jungle, [] },
+                { ChampSelectAssignedPosition.Middle, [] },
+                { ChampSelectAssignedPosition.Bottom, [] },
+                { ChampSelectAssignedPosition.Support, [] }
+            };
         }
 
         public static async Task SaveAsync()
@@ -80,6 +96,14 @@ namespace SummonMyStrength.Maui
             public DateTime PickedAt { get; set; }
         }
 
+        public class HandsFreePreference
+        {
+            public int PickChampionId { get; set; }
+            public List<int> BanChampionIds { get; set; }
+            public int SummonerSpell1 { get; set; }
+            public int SummonerSpell2 { get; set; }
+        }
+
         private class DataStoreObject
         {
             public int? WindowWidth { get; set; }
@@ -89,9 +113,11 @@ namespace SummonMyStrength.Maui
             public Dictionary<int, PerkPage[]> RunePages { get; set; }
             public List<int> PreferredAramChampions { get; set; }
             public bool AutoAcceptReadyChecks { get; set; }
+            public bool HandsFreeMode { get; set; }
             public Dictionary<ChampSelectAssignedPosition, List<RecentPick>> RecentPicks { get; set; }
             public Dictionary<int, List<RecentPick>> RecentBansByPick { get; set; }
             public Dictionary<ChampSelectAssignedPosition, List<RecentPick>> RecentBansByPosition { get; set; }
+            public Dictionary<ChampSelectAssignedPosition, List<HandsFreePreference>> HandsFreePreferences { get; set; }
         }
     }
 }

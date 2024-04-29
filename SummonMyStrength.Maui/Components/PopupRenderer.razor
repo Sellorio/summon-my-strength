@@ -5,6 +5,9 @@
     case Popup.Runes:
         <SummonMyStrength.Maui.Components.Runes.RunesPopup OnCloseClicked="() => PopupChanged.InvokeAsync(Popup = Popup.None)" />
         break;
+    case Popup.HandsFree:
+        <SummonMyStrength.Maui.Components.HandsFree.HandsFreePopup OnCloseClicked="() => PopupChanged.InvokeAsync(Popup = Popup.None)" />
+        break;
 }
 
 @code {

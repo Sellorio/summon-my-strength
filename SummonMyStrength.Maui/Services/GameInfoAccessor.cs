@@ -43,7 +43,7 @@ namespace SummonMyStrength.Maui.Services
             _leagueClient = leagueClient;
 
             _timer.Elapsed += Timer_Elapsed;
-            _leagueClient.Gameflow.GameflowPhaseChanged += Gameflow_GameflowPhaseChanged;
+            //_leagueClient.Gameflow.GameflowPhaseChanged += Gameflow_GameflowPhaseChanged; Http Request to 127.0.0.1:2999 doesn't work. Investigating later...
         }
 
         private void Timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
@@ -124,7 +124,13 @@ namespace SummonMyStrength.Maui.Services
 
                 if (_nextTick <= gameTimeAsTicks)
                 {
-                    var currentPlayer = GameInfo.AllPlayers.First(x => x.SummonerName == GameInfo.ActivePlayer.SummonerName);
+                    var currentPlayer = GameInfo.AllPlayers.FirstOrDefault(x => x.SummonerName == GameInfo.ActivePlayer.SummonerName);
+
+                    // not fully loaded yet
+                    if (currentPlayer == null)
+                    {
+                        return;
+                    }
 
                     _data ??= new();
                     _championName ??= currentPlayer.ChampionName;

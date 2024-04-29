@@ -8,8 +8,8 @@
 @using SummonMyStrength.Maui.Components.InGame
 @inject SummonMyStrength.Api.LeagueClient LeagueClient
 
-<MudDrawerContainer Class="mud-height-full">
-    <Sidebar @bind-Expanded="_expandSidebar" OnOpenRunes="() => _popup = Popup.Runes" />
+<MudDrawerContainer Class="mud-height-full" Style="overflow: hidden">
+    <Sidebar @bind-Expanded="_expandSidebar" OnOpenRunes="() => _popup = Popup.Runes" OnOpenHandsFree="() => _popup = Popup.HandsFree" />
     <StatusBar OnToggleSidebar="() => _expandSidebar = !_expandSidebar" />
     <div class="main-content">
         @switch (_currentPhase)

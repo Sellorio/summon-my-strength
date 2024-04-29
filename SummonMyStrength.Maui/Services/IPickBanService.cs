@@ -10,7 +10,7 @@ namespace SummonMyStrength.Maui.Services
         Task SetAssignedPosition(ChampSelectAssignedPosition position);
         Task<List<Champion>> GetRecentPicksAsync();
         Task<List<Champion>> GetRecentBansAsync();
-        Task PickChampionAsync(Champion champion);
-        Task BanChampionAsync(Champion champion);
+        Task PickChampionAsync(Champion champion, bool lockIn = true);
+        Task BanChampionAsync(Champion champion, bool lockIn = true);
     }
 }

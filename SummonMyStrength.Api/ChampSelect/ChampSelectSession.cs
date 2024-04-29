@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using System.Text.Json.Serialization;
+using System.Threading;
 
 namespace SummonMyStrength.Api.ChampSelect
 {
@@ -39,6 +40,14 @@ namespace SummonMyStrength.Api.ChampSelect
         public ChampSelectPlayerSelection Player => _player ??= MyTeam.First(x => x.CellId == LocalPlayerCellId);
 
         [JsonIgnore]
-        public bool IsBanning => Timer.Phase != "PLANNING" && Actions.SelectMany(x => x).Any(x => x.Type == ActionType.Ban && x.ActorCellId == LocalPlayerCellId && x.IsInProgress.Value);
+        public bool IsPickingIntent =>
+            Timer.Phase == "PLANNING" ||
+            !IsBanning && Actions.SelectMany(x => x).Any(x => x.Type == ActionType.Pick && x.ActorCellId == LocalPlayerCellId && !x.IsInProgress.Value && !x.Completed.Value);
+
+        [JsonIgnore]
+        public bool IsActivelyPicking => Actions.SelectMany(x => x).Any(x => x.Type == ActionType.Pick && x.ActorCellId == LocalPlayerCellId && x.IsInProgress.Value);
+
+        [JsonIgnore]
+        public bool IsBanning => Timer.Phase != "PLANNING" && Actions.SelectMany(x => x).Any(x => x.Type == ActionType.Ban && x.ActorCellId == LocalPlayerCellId && x.IsInProgress.Value && !x.Completed.Value);
     }
 }

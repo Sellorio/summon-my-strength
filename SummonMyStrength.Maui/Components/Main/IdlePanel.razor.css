@@ -1,9 +1,17 @@
-﻿.wrapper {
+﻿.idle-message-wrapper {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100%;
     font-size: 100px;
     color: white;
     opacity: 0.1;
+}
+
+.spacer {
+    height: 24px;
 }

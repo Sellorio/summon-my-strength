@@ -1,5 +1,6 @@
 ﻿using MudBlazor.Services;
 using SummonMyStrength.Api;
+using SummonMyStrength.Maui.Components.Common.DragDrop;
 using SummonMyStrength.Maui.Services;
 
 namespace SummonMyStrength.Maui
@@ -30,9 +31,16 @@ namespace SummonMyStrength.Maui
             builder.Services.AddSingleton<IRuneSetService>(new RuneSetService(leagueClient));
             builder.Services.AddSingleton<IPickBanService>(new PickBanService(leagueClient, champSelectSessionAccessor));
             builder.Services.AddSingleton<IGameInfoAccessor>(new GameInfoAccessor(leagueClient));
+            builder.Services.AddSingleton<IHandsFreeService, HandsFreeService>();
+            builder.Services.AddSingleton<IDragDropService, DragDropService>();
+            builder.Services.AddTransient<IChampSelectSessionAbstractor, ChampSelectSessionAbstractor>();
             builder.Services.AddMudServices();
 
-            return builder.Build();
+            var app = builder.Build();
+
+            Task.Run(app.Services.GetRequiredService<IHandsFreeService>().InitialiseAsync);
+
+            return app;
         }
     }
 }
