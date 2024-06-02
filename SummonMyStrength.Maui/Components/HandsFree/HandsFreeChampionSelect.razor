@@ -3,7 +3,7 @@
 @using System.Text.RegularExpressions
 @inject LeagueClient LeagueClient
 
-<button @onclick="() => _isExpanded = !_isExpanded">
+<button @onclick="ExpandAsync">
     @if (SelectedChampion == null)
     {
         <div class="no-champion-icon"></div>
@@ -18,7 +18,7 @@
 {
     <div class="underlay" @onclick="() => _isExpanded = false"></div>
     <div class="champ-select">
-        <input type="text" value="@_searchText" @oninput="SearchTextChanged">
+        <input @ref="_searchInput" type="text" value="@_searchText" @onkeydown="OnKeyDown" @oninput="SearchTextChanged">
         <div class="search-results">
             @foreach (var r in _filteredChampions)
             {
@@ -39,8 +39,14 @@
 
 @code {
     private bool _isExpanded;
+    private bool _focusOnNextRender;
     private string _searchText;
     private Champion[] _filteredChampions { get; set; } = [];
+
+    private ElementReference _searchInput;
+
+    [Inject]
+    public IJSRuntime JSRuntime { get; set; }
 
     [Parameter]
     public ICollection<Champion> Champions { get; set; }
@@ -51,16 +57,44 @@
     [Parameter]
     public EventCallback<Champion> SelectedChampionChanged { get; set; }
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_focusOnNextRender)
+        {
+            _focusOnNextRender = false;
+            await JSRuntime.InvokeVoidAsync("HTMLInputElement.prototype.focus.call", _searchInput);
+            StateHasChanged();
+        }
+    }
+
+    private async Task ExpandAsync()
+    {
+        _isExpanded = true;
+        _focusOnNextRender = true;
+    }
+
     private void SearchTextChanged(ChangeEventArgs args)
     {
         _searchText = args.Value?.ToString();
         string asRegex = $".*{string.Join(string.Empty, _searchText?.Select(x => Regex.Escape(x.ToString()) + ".*"))}";
-        _filteredChampions = Champions.Where(x => Regex.IsMatch(x.Name, asRegex)).Take(5).ToArray();
+        _filteredChampions = Champions.Where(x => Regex.IsMatch(x.Name, asRegex, RegexOptions.IgnoreCase)).Take(5).ToArray();
     }
 
     private async Task SelectChampAsync(Champion champion)
     {
         _isExpanded = false;
         await SelectedChampionChanged.InvokeAsync(SelectedChampion = champion);
+    }
+
+    private void OnKeyDown(KeyboardEventArgs args)
+    {
+        if (args.Key == "Enter")
+        {
+            if (_filteredChampions.Any())
+            {
+                SelectedChampionChanged.InvokeAsync(SelectedChampion = _filteredChampions.First());
+                _isExpanded = false;
+            }
+        }
     }
 }

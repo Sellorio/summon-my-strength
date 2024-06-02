@@ -1,5 +1,7 @@
-﻿using System;
+﻿using SummonMyStrength.Api.ChampSelect.Trades;
+using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
@@ -59,6 +61,67 @@ namespace SummonMyStrength.Api.ChampSelect
             var responseMessage = await _client.HttpClient.PostAsync($"lol-champ-select/v1/session/trades/{id}/request", new StringContent(""));
             responseMessage.EnsureSuccessStatusCode();
             return JsonSerializer.Deserialize<ChampSelectTradeContract>(await responseMessage.Content.ReadAsStringAsync(), LeagueClient.JsonSerializerOptions);
+        }
+
+        /// <summary>
+        /// Retrieves the details of an ongoing trade request.
+        /// </summary>
+        /// <returns>The details of the trade.</returns>
+        public async Task<OngoingTrade> GetOngoingTradeAsync()
+        {
+            var responseMessage = await _client.HttpClient.PostAsync($"lol-champ-select/v1/ongoing-trade", new StringContent(""));
+
+            if (responseMessage.StatusCode == HttpStatusCode.NotFound)
+            {
+                return null;
+            }
+
+            responseMessage.EnsureSuccessStatusCode();
+            return JsonSerializer.Deserialize<OngoingTrade>(await responseMessage.Content.ReadAsStringAsync(), LeagueClient.JsonSerializerOptions);
+        }
+
+        /// <summary>
+        /// Accepts the trade request.
+        /// </summary>
+        /// <param name="id">Either your trade id or your counter part's trade id.</param>
+        /// <returns>The task for the action.</returns>
+        public async Task AcceptTradeAsync(long id)
+        {
+            var responseMessage = await _client.HttpClient.PostAsync($"lol-champ-select/v1/session/trades/{id}/accept", new StringContent(""));
+            responseMessage.EnsureSuccessStatusCode();
+        }
+
+        /// <summary>
+        /// Rejects the trade request.
+        /// </summary>
+        /// <param name="id">Either your trade id or your counter part's trade id.</param>
+        /// <returns>The task for the action.</returns>
+        public async Task DeclineTradeAsync(long id)
+        {
+            var responseMessage = await _client.HttpClient.PostAsync($"lol-champ-select/v1/session/trades/{id}/decline", new StringContent(""));
+            responseMessage.EnsureSuccessStatusCode();
+        }
+
+        /// <summary>
+        /// Accepts the swap request. Trade is when trading champions. Swap is when trading pick order.
+        /// </summary>
+        /// <param name="id">Either your trade id or your counter part's swap id.</param>
+        /// <returns>The task for the action.</returns>
+        public async Task AcceptSwapAsync(long id)
+        {
+            var responseMessage = await _client.HttpClient.PostAsync($"lol-champ-select/v1/session/swaps/{id}/accept", new StringContent(""));
+            responseMessage.EnsureSuccessStatusCode();
+        }
+
+        /// <summary>
+        /// Rejects the trade request. Trade is when trading champions. Swap is when trading pick order.
+        /// </summary>
+        /// <param name="id">Either your trade id or your counter part's swap id.</param>
+        /// <returns>The task for the action.</returns>
+        public async Task DeclineSwapAsync(long id)
+        {
+            var responseMessage = await _client.HttpClient.PostAsync($"lol-champ-select/v1/session/swaps/{id}/decline", new StringContent(""));
+            responseMessage.EnsureSuccessStatusCode();
         }
 
         /// <summary>

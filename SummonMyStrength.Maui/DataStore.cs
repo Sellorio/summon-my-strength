@@ -1,5 +1,6 @@
 ﻿using SummonMyStrength.Api.ChampSelect;
 using SummonMyStrength.Api.Perks;
+using SummonMyStrength.Maui.Services.ChampSelect;
 using System.Text.Json;
 
 namespace SummonMyStrength.Maui
@@ -53,6 +54,13 @@ namespace SummonMyStrength.Maui
             get => _data.HandsFreeMode;
             set => _data.HandsFreeMode = value;
         }
+        
+        public static TradeResponse PickOrderTradeResponse
+        {
+            get => _data.PickOrderTradeResponse;
+            set => _data.PickOrderTradeResponse = value;
+        }
+
 
         public static Dictionary<ChampSelectAssignedPosition, List<RecentPick>> RecentPicks => _data.RecentPicks;
 
@@ -114,6 +122,7 @@ namespace SummonMyStrength.Maui
             public List<int> PreferredAramChampions { get; set; }
             public bool AutoAcceptReadyChecks { get; set; }
             public bool HandsFreeMode { get; set; }
+            public TradeResponse PickOrderTradeResponse { get; set; }
             public Dictionary<ChampSelectAssignedPosition, List<RecentPick>> RecentPicks { get; set; }
             public Dictionary<int, List<RecentPick>> RecentBansByPick { get; set; }
             public Dictionary<ChampSelectAssignedPosition, List<RecentPick>> RecentBansByPosition { get; set; }

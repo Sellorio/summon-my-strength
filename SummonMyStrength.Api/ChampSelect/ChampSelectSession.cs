@@ -1,6 +1,5 @@
 ﻿using System.Linq;
 using System.Text.Json.Serialization;
-using System.Threading;
 
 namespace SummonMyStrength.Api.ChampSelect
 {
@@ -33,6 +32,7 @@ namespace SummonMyStrength.Api.ChampSelect
         public ChampSelectPlayerSelection[] TheirTeam { get; set; }
         public ChampSelectTimer Timer { get; set; }
         public ChampSelectTradeContract[] Trades { get; set; }
+        public ChampSelectTradeContract[] PickOrderSwaps { get; set; }
 
         private ChampSelectPlayerSelection _player;
 
