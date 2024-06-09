@@ -11,89 +11,101 @@
 
         <MudText Class="mt-4" Typo="Typo.h6">Preferences</MudText>
 
-        <MudTabs Class="mt-2" @bind-ActivePanelIndex="_activeTab" MinimumTabWidth="0">
-            @foreach (var p in DataStore.HandsFreePreferences)
-            {
-                var position = p;
+        @if (_isLoading)
+        {
+            <MudGrid Class="ma-8" Justify="Justify.Center">
+                <MudItem>
+                    <MudProgressCircular Size="Size.Large" Indeterminate />
+                </MudItem>
+            </MudGrid>
+        }
+        else
+        {
+            <MudTabs Class="mt-2" @bind-ActivePanelIndex="_activeTab" MinimumTabWidth="0">
+                @foreach (var p in DataStore.HandsFreePreferences)
+                {
+                    var position = p;
 
-                <MudTabPanel Text="@position.Key.ToDisplay()">
-                    <MudGrid Spacing="0" Style="flex-wrap:nowrap">
-                        <MudItem Style="width:25%">
-                            <MudText Typo="Typo.subtitle1">Pick</MudText>
-                        </MudItem>
-                        <MudItem Style="width:65%">
-                            <MudText Typo="Typo.subtitle1">Bans</MudText>
-                        </MudItem>
-                        <MudItem Style="width:45%">
-                            <MudText Typo="Typo.subtitle1">Spells</MudText>
-                        </MudItem>
-                        <MudItem Style="width:25%">
-                        </MudItem>
-                    </MudGrid>
+                    <MudTabPanel Text="@position.Key.ToDisplay()">
+                        <MudGrid Spacing="0" Style="flex-wrap:nowrap">
+                            <MudItem Style="width:25%">
+                                <MudText Typo="Typo.subtitle1">Pick</MudText>
+                            </MudItem>
+                            <MudItem Style="width:65%">
+                                <MudText Typo="Typo.subtitle1">Bans</MudText>
+                            </MudItem>
+                            <MudItem Style="width:45%">
+                                <MudText Typo="Typo.subtitle1">Spells</MudText>
+                            </MudItem>
+                            <MudItem Style="width:25%">
+                            </MudItem>
+                        </MudGrid>
 
-                    @foreach (var pr in position.Value)
-                    {
-                        var preference = pr;
-                        var preferenceIndex = position.Value.IndexOf(preference);
+                        @foreach (var pr in position.Value)
+                        {
+                            var preference = pr;
+                            var preferenceIndex = position.Value.IndexOf(preference);
 
-                        <Draggable T="DataStore.HandsFreePreference" Key="preference" OnDragCompleted="() => position.Value.Remove(preference)" OnInsertDrop="x => position.Value.Insert(preferenceIndex, x)">
-                            <div class="preference-wrapper">
-                                <MudGrid Spacing="0" Style="flex-wrap:nowrap; align-items:center">
-                                    <MudItem Style="width:25%">
-                                        <img class="champion-icon" src="@LeagueClient.Champions.GetIconUrl(_champions[preference.PickChampionId])">
-                                    </MudItem>
-                                    <MudItem Style="width:65%">
-                                        @foreach (var ban in preference.BanChampionIds)
-                                        {
-                                            <button class="ban-item" @onclick="() => RemoveBanAsync(preference, ban)">
-                                                <img class="champion-icon" src="@LeagueClient.Champions.GetIconUrl(_champions[ban])">
-                                                <MudIcon Class="ban-remove-indicator" Color="Color.Error" Icon="@Icons.Material.Outlined.Close" />
-                                            </button>
-                                        }
+                            <Draggable T="DataStore.HandsFreePreference" Key="preference" OnDragCompleted="() => position.Value.Remove(preference)" OnInsertDrop="x => position.Value.Insert(preferenceIndex, x)">
+                                <div class="preference-wrapper">
+                                    <MudGrid Spacing="0" Style="flex-wrap:nowrap; align-items:center">
+                                        <MudItem Style="width:25%">
+                                            <img class="champion-icon" src="@LeagueClient.Champions.GetIconUrl(_champions[preference.PickChampionId])">
+                                        </MudItem>
+                                        <MudItem Style="width:65%">
+                                            @foreach (var ban in preference.BanChampionIds)
+                                            {
+                                                <button class="ban-item" @onclick="() => RemoveBanAsync(preference, ban)">
+                                                    <img class="champion-icon" src="@LeagueClient.Champions.GetIconUrl(_champions[ban])">
+                                                    <MudIcon Class="ban-remove-indicator" Color="Color.Error" Icon="@Icons.Material.Outlined.Close" />
+                                                </button>
+                                            }
 
-                                        @if (preference.BanChampionIds.Count < 3)
-                                        {
-                                            <HandsFreeChampionSelect Champions="_champions.Values.Except([_champions[preference.PickChampionId],..preference.BanChampionIds.Select(x => _champions[x])]).ToList()"
-                                                                     SelectedChampion="null"
-                                                                     SelectedChampionChanged="x => AddBanAsync(preference, x)" />
-                                        }
-                                    </MudItem>
-                                    <MudItem Style="width:45%">
-                                        <SummonerSpellSelect Spells="_spells.Values"
-                                                             SelectedSpell="_spells[preference.SummonerSpell1]" OtherSpell="_spells[preference.SummonerSpell2]"
-                                                             SelectedSpellChanged="x => UpdateSummonerSpell1Async(preference, x)" OtherSpellChanged="x => UpdateSummonerSpell2Async(preference, x)" />
-                                        <SummonerSpellSelect Spells="_spells.Values"
-                                                             SelectedSpell="_spells[preference.SummonerSpell2]" OtherSpell="_spells[preference.SummonerSpell1]"
-                                                             SelectedSpellChanged="x => UpdateSummonerSpell2Async(preference, x)" OtherSpellChanged="x => UpdateSummonerSpell1Async(preference, x)" />
-                                    </MudItem>
-                                    <MudItem Style="width:25%">
-                                        <MudIconButton Size="Size.Small" Color="Color.Error" Variant="Variant.Text" Icon="@Icons.Material.Outlined.Delete" OnClick="() => RemovePreferenceAsync(position.Key, preference)" />
-                                    </MudItem>
-                                </MudGrid>
-                            </div>
-                        </Draggable>
-                    }
+                                            @if (preference.BanChampionIds.Count < 3)
+                                            {
+                                                <HandsFreeChampionSelect Champions="_champions.Values.Except([_champions[preference.PickChampionId],..preference.BanChampionIds.Select(x => _champions[x])]).ToList()"
+                                                                         SelectedChampion="null"
+                                                                         SelectedChampionChanged="x => AddBanAsync(preference, x)" />
+                                            }
+                                        </MudItem>
+                                        <MudItem Style="width:45%">
+                                            <SummonerSpellSelect Spells="_spells.Values"
+                                                                 SelectedSpell="_spells[preference.SummonerSpell1]" OtherSpell="_spells[preference.SummonerSpell2]"
+                                                                 SelectedSpellChanged="x => UpdateSummonerSpell1Async(preference, x)" OtherSpellChanged="x => UpdateSummonerSpell2Async(preference, x)" />
+                                            <SummonerSpellSelect Spells="_spells.Values"
+                                                                 SelectedSpell="_spells[preference.SummonerSpell2]" OtherSpell="_spells[preference.SummonerSpell1]"
+                                                                 SelectedSpellChanged="x => UpdateSummonerSpell2Async(preference, x)" OtherSpellChanged="x => UpdateSummonerSpell1Async(preference, x)" />
+                                        </MudItem>
+                                        <MudItem Style="width:25%">
+                                            <MudIconButton Size="Size.Small" Color="Color.Error" Variant="Variant.Text" Icon="@Icons.Material.Outlined.Delete" OnClick="() => RemovePreferenceAsync(position.Key, preference)" />
+                                        </MudItem>
+                                    </MudGrid>
+                                </div>
+                            </Draggable>
+                        }
 
-                    <DragDropsite T="DataStore.HandsFreePreference" OnDrop="x => position.Value.Add(x)" />
+                        <DragDropsite T="DataStore.HandsFreePreference" OnDrop="x => position.Value.Add(x)" />
 
-                    <MudGrid Spacing="0" Style="flex-wrap:nowrap">
-                        <MudItem Style="width:25%">
-                            <HandsFreeChampionSelect Champions="_champions.Values" SelectedChampion="null" SelectedChampionChanged="x => AddPreferenceAsync(position.Key, x)" />
-                        </MudItem>
-                        <MudItem Style="width:65%">
-                        </MudItem>
-                        <MudItem Style="width:45%">
-                        </MudItem>
-                        <MudItem Style="width:25%">
-                        </MudItem>
-                    </MudGrid>
-                </MudTabPanel>
-            }
-        </MudTabs>
+                        <MudGrid Spacing="0" Style="flex-wrap:nowrap">
+                            <MudItem Style="width:25%">
+                                <HandsFreeChampionSelect Champions="_champions.Values" SelectedChampion="null" SelectedChampionChanged="x => AddPreferenceAsync(position.Key, x)" />
+                            </MudItem>
+                            <MudItem Style="width:65%">
+                            </MudItem>
+                            <MudItem Style="width:45%">
+                            </MudItem>
+                            <MudItem Style="width:25%">
+                            </MudItem>
+                        </MudGrid>
+                    </MudTabPanel>
+                }
+            </MudTabs>
+        }
     </PopupPanelWrapper>
 </div>
 
 @code {
+    private bool _isLoading;
     private int _activeTab;
     private Dictionary<int, Api.Champions.Champion> _champions;
     private Dictionary<int, Api.SummonerSpells.SummonerSpell> _spells;
@@ -103,8 +115,10 @@
 
     protected override async Task OnInitializedAsync()
     {
+        _isLoading = true;
         _champions = (await LeagueClient.Champions.GetChampionsAsync()).ToDictionary(x => x.Id, x => x);
         _spells = (await LeagueClient.SummonerSpells.GetSummonerSpellsAsync()).Where(x => x.Modes.Contains("CLASSIC")).ToDictionary(x => x.Id, x => x);
+        _isLoading = false;
     }
 
     private async Task UpdateSummonerSpell1Async(DataStore.HandsFreePreference preference, SummonerSpell newSpell)
