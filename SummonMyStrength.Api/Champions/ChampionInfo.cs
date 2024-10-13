@@ -1,10 +1,9 @@
-﻿namespace SummonMyStrength.Api.Champions
+﻿namespace SummonMyStrength.Api.Champions;
+
+public class ChampionInfo
 {
-    public class ChampionInfo
-    {
-        public int Attack { get; set; }
-        public int Defense { get; set; }
-        public int Magic { get; set; }
-        public int Difficulty { get; set; }
-    }
+    public int Attack { get; set; }
+    public int Defense { get; set; }
+    public int Magic { get; set; }
+    public int Difficulty { get; set; }
 }

@@ -1,0 +1,115 @@
+﻿@using SummonMyStrength.Api
+@using SummonMyStrength.Api.Champions
+@using SummonMyStrength.Maui.Services
+@using SummonMyStrength.Maui.Services.LiveApi
+@inject LeagueClient LeagueClient
+@inject IGameInfoAccessor GameInfoAccessor
+@inject IHonorService HonorService
+
+@if (_allies != null)
+{
+    <MudText Class="mt-4" Typo="Typo.h6" Align="Align.Center">
+        Pre-Select which summoners to honor
+    </MudText>
+    <div class="summoner-row">
+        @foreach (var a in _allies)
+    {
+        var ally = a;
+        var isPrimary = ally.SummonerName == HonorService.PrimaryHonorSummonerName;
+        var isSecondary = !isPrimary && ally.SummonerName == HonorService.SecondaryHonorSummonerName;
+
+        <button @onclick="() => ToggleHonorSummoner(ally)"
+                    class="@((isPrimary || isSecondary ? "honor " : "") + (isPrimary ? "honor-primary" : "") + (isSecondary ? "honor-secondary": ""))">
+                <img alt="@ally.Champion.Name" src="@LeagueClient.Champions.GetIconUrl(ally.Champion)">
+                <span>@ally.SummonerName</span>
+            </button>
+    }
+    </div>
+    <div class="summoner-row">
+        @foreach (var o in _opponents)
+    {
+        var opponent = o;
+        var isPrimary = opponent.SummonerName == HonorService.PrimaryHonorSummonerName;
+        var isSecondary = !isPrimary && opponent.SummonerName == HonorService.SecondaryHonorSummonerName;
+
+        <button @onclick="() => ToggleHonorSummoner(opponent)"
+                    class="@((isPrimary || isSecondary ? "honor " : "") + (isPrimary ? "honor-primary" : "") + (isSecondary ? "honor-secondary": ""))">
+                <img alt="@opponent.Champion.Name" src="@LeagueClient.Champions.GetIconUrl(opponent.Champion)">
+                <span>@opponent.SummonerName</span>
+            </button>
+    }
+    </div>
+    <div>
+        Mode: @GameInfoAccessor.GameInfo?.GameSettings?.GameMode
+        &nbsp;&nbsp;&nbsp;&nbsp;
+        Map: @GameInfoAccessor.GameInfo?.GameSettings?.MapName
+    </div>
+}
+
+@code {
+private SummonerItem[] _allies;
+private SummonerItem[] _opponents;
+
+protected override void OnInitialized()
+{
+    GameInfoAccessor.GameInfoChanged += OnGameInfoChanged;
+}
+
+private async Task OnGameInfoChanged()
+{
+    if (GameInfoAccessor.GameInfo != null && GameInfoAccessor.GameInfo.CurrentPlayer != null)
+    {
+        GameInfoAccessor.GameInfoChanged -= OnGameInfoChanged;
+
+        var champions = await LeagueClient.Champions.GetChampionsAsync();
+        var playerTeam = GameInfoAccessor.GameInfo.CurrentPlayer.Team.Value;
+
+        try
+        {
+            _allies =
+                GameInfoAccessor.GameInfo.AllPlayers
+                    .Where(x => x.Team == playerTeam && x.SummonerName != GameInfoAccessor.GameInfo.ActivePlayer.SummonerName)
+                    .Select(x => new SummonerItem { SummonerName = x.SummonerName, Champion = champions.First(y => y.Name == x.ChampionName) })
+                    .ToArray();
+        }
+        finally
+        {
+        }
+
+        _opponents =
+            GameInfoAccessor.GameInfo.AllPlayers
+                .Where(x => x.Team != playerTeam)
+                .Select(x => new SummonerItem { SummonerName = x.SummonerName, Champion = champions.First(y => y.Name == x.ChampionName) })
+                .ToArray();
+
+        await InvokeAsync(StateHasChanged);
+    }
+}
+
+private void ToggleHonorSummoner(SummonerItem summoner)
+{
+    if (HonorService.PrimaryHonorSummonerName == summoner.SummonerName)
+    {
+        HonorService.PrimaryHonorSummonerName = HonorService.SecondaryHonorSummonerName;
+        HonorService.SecondaryHonorSummonerName = null;
+    }
+    else if (HonorService.SecondaryHonorSummonerName == summoner.SummonerName)
+    {
+        HonorService.SecondaryHonorSummonerName = null;
+    }
+    else if (HonorService.PrimaryHonorSummonerName == null)
+    {
+        HonorService.PrimaryHonorSummonerName = summoner.SummonerName;
+    }
+    else
+    {
+        HonorService.SecondaryHonorSummonerName = summoner.SummonerName;
+    }
+}
+
+private record SummonerItem
+{
+    public string SummonerName { get; set; }
+    public Champion Champion { get; set; }
+}
+}

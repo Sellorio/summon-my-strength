@@ -4,18 +4,18 @@
 @{
     Color statusColor;
 
-    switch (_readyCheck?.PlayerResponse)
-    {
-        case Api.Matchmaking.ReadyCheckPlayerResponse.Accepted:
-            statusColor = Color.Success;
-            break;
-        case Api.Matchmaking.ReadyCheckPlayerResponse.Declined:
-            statusColor = Color.Error;
-            break;
-        default:
-            statusColor = Color.Default;
-            break;
-    }
+switch (_readyCheck?.PlayerResponse)
+{
+    case Api.Matchmaking.ReadyCheckPlayerResponse.Accepted:
+        statusColor = Color.Success;
+        break;
+    case Api.Matchmaking.ReadyCheckPlayerResponse.Declined:
+        statusColor = Color.Error;
+        break;
+    default:
+        statusColor = Color.Default;
+        break;
+}
 }
 
 <MudGrid Justify="Justify.Center" Spacing="0">
@@ -31,42 +31,42 @@
 </MudGrid>
 
 @code {
-    private System.Timers.Timer _timer;
-    private DateTime _startedAt = DateTime.Now;
-    private SummonMyStrength.Api.Matchmaking.ReadyCheck _readyCheck;
+private System.Timers.Timer _timer;
+private DateTime _startedAt = DateTime.Now;
+private SummonMyStrength.Api.Matchmaking.ReadyCheck _readyCheck;
 
-    protected override async Task OnInitializedAsync()
+protected override async Task OnInitializedAsync()
+{
+    _timer = new System.Timers.Timer
     {
-        _timer = new System.Timers.Timer
-        {
-            AutoReset = true,
-            Enabled = true,
-            Interval = 10
-        };
+        AutoReset = true,
+        Enabled = true,
+        Interval = 10
+    };
 
-        _timer.Elapsed += (s, e) => InvokeAsync(StateHasChanged);
+    _timer.Elapsed += (s, e) => InvokeAsync(StateHasChanged);
 
-        _readyCheck = await LeagueClient.Matchmaking.GetReadyCheckAsync();
-        LeagueClient.Matchmaking.ReadyCheckChanged += ReadyCheckChanged;
+    _readyCheck = await LeagueClient.Matchmaking.GetReadyCheckAsync();
+    LeagueClient.Matchmaking.ReadyCheckChanged += ReadyCheckChanged;
+}
+
+public void Dispose()
+{
+    _timer.Stop();
+    _timer = null;
+
+    LeagueClient.Matchmaking.ReadyCheckChanged -= ReadyCheckChanged;
+}
+
+private async Task ReadyCheckChanged(SummonMyStrength.Api.Matchmaking.ReadyCheck newReadyCheck)
+{
+    // if we are far off the timer (> 1s) update our local timer
+    if (Math.Abs(newReadyCheck.Timer - (DateTime.Now - _startedAt).TotalSeconds) > 1.0)
+    {
+        _startedAt = DateTime.Now.AddSeconds(-newReadyCheck.Timer);
     }
 
-    public void Dispose()
-    {
-        _timer.Stop();
-        _timer = null;
-
-        LeagueClient.Matchmaking.ReadyCheckChanged -= ReadyCheckChanged;
-    }
-
-    private async Task ReadyCheckChanged(SummonMyStrength.Api.Matchmaking.ReadyCheck newReadyCheck)
-    {
-        // if we are far off the timer (> 1s) update our local timer
-        if (Math.Abs(newReadyCheck.Timer - (DateTime.Now - _startedAt).TotalSeconds) > 1.0)
-        {
-            _startedAt = DateTime.Now.AddSeconds(-newReadyCheck.Timer);
-        }
-
-        _readyCheck = newReadyCheck;
-        await InvokeAsync(StateHasChanged);
-    }
+    _readyCheck = newReadyCheck;
+    await InvokeAsync(StateHasChanged);
+}
 }

@@ -1,8 +1,7 @@
-﻿namespace SummonMyStrength.Maui.Services.LiveApi
+﻿namespace SummonMyStrength.Maui.Services.LiveApi;
+
+public enum PlayerTeam
 {
-    public enum PlayerTeam
-    {
-        Order,
-        Chaos
-    }
+    Order,
+    Chaos
 }

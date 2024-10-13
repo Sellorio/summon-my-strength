@@ -1,16 +1,15 @@
 ﻿using SummonMyStrength.Api.Champions;
 using SummonMyStrength.Api.ChampSelect;
 
-namespace SummonMyStrength.Maui.Services
+namespace SummonMyStrength.Maui.Services;
+
+public interface IPickBanService
 {
-    public interface IPickBanService
-    {
-        ChampSelectAssignedPosition? Position { get; }
-        event Func<Task> AssignedPositionChanged;
-        Task SetAssignedPosition(ChampSelectAssignedPosition position);
-        Task<List<Champion>> GetRecentPicksAsync();
-        Task<List<Champion>> GetRecentBansAsync();
-        Task PickChampionAsync(Champion champion, bool lockIn = true);
-        Task BanChampionAsync(Champion champion, bool lockIn = true);
-    }
+    ChampSelectAssignedPosition? Position { get; }
+    event Func<Task> AssignedPositionChanged;
+    Task SetAssignedPosition(ChampSelectAssignedPosition position);
+    Task<List<Champion>> GetRecentPicksAsync();
+    Task<List<Champion>> GetRecentBansAsync();
+    Task PickChampionAsync(Champion champion, bool lockIn = true);
+    Task BanChampionAsync(Champion champion, bool lockIn = true);
 }

@@ -1,10 +1,9 @@
-﻿namespace SummonMyStrength.Api.Login
+﻿namespace SummonMyStrength.Api.Login;
+
+public enum LoginState
 {
-    public enum LoginState
-    {
-        InProgress,
-        Succeeded,
-        LoggingOut,
-        Error
-    }
+    InProgress,
+    Succeeded,
+    LoggingOut,
+    Error
 }

@@ -1,8 +1,7 @@
-﻿namespace SummonMyStrength.Api.ChampSelect
+﻿namespace SummonMyStrength.Api.ChampSelect;
+
+public class CollectionsSkinEmblemPosition
 {
-    public class CollectionsSkinEmblemPosition
-    {
-        public string Horizontal { get; set; }
-        public string Vertical { get; set; }
-    }
+    public string Horizontal { get; set; }
+    public string Vertical { get; set; }
 }

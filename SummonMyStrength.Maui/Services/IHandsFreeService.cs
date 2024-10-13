@@ -1,7 +1,6 @@
-﻿namespace SummonMyStrength.Maui.Services
+﻿namespace SummonMyStrength.Maui.Services;
+
+internal interface IHandsFreeService
 {
-    internal interface IHandsFreeService
-    {
-        Task InitialiseAsync();
-    }
+    Task InitialiseAsync();
 }

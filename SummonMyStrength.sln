@@ -7,10 +7,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SummonMyStrength.Api", "Sum
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{43777A6F-215F-42A5-9C4B-F1B8D9E6C21E}"
 	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
 		.gitignore = .gitignore
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SummonMyStrength.Maui", "SummonMyStrength.Maui\SummonMyStrength.Maui.csproj", "{61CE231C-75C8-424C-B057-EF3C064EC4B9}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SummonMyStrength.Simulation", "SummonMyStrength.Simulation\SummonMyStrength.Simulation.csproj", "{FD0F3001-2D5A-46C7-BD0B-38B7C87EC3D9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -28,6 +31,10 @@ Global
 		{61CE231C-75C8-424C-B057-EF3C064EC4B9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{61CE231C-75C8-424C-B057-EF3C064EC4B9}.Release|Any CPU.Build.0 = Release|Any CPU
 		{61CE231C-75C8-424C-B057-EF3C064EC4B9}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{FD0F3001-2D5A-46C7-BD0B-38B7C87EC3D9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FD0F3001-2D5A-46C7-BD0B-38B7C87EC3D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FD0F3001-2D5A-46C7-BD0B-38B7C87EC3D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FD0F3001-2D5A-46C7-BD0B-38B7C87EC3D9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

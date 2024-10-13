@@ -1,3 +1,59 @@
+async function sandboxedEval(script, ...args) {
+    const iframeContent = `
+<html>
+    <head></head>
+    <body>
+        <script>
+            window.addEventListener("message", event => {
+                const functionWhichOutputsTheFunction = new Function("return " + event.data.code);
+                const theFunction = functionWhichOutputsTheFunction();
+                const output = theFunction(...event.data.args);
+                window.parent.postMessage(output, "*");
+            });
+        </script>
+    </body>
+</html>
+`;
+    let promiseResolve;
+
+    const promise = new Promise((resolve) => {
+        promiseResolve = resolve;
+    });
+
+    const onMessage = event => {
+        if (event.source === iframe.contentWindow) {
+            promiseResolve(event.data);
+        }
+    };
+
+    const iframe = document.createElement('iframe');
+    iframe.src = "data:text/html;charset=utf-8," + iframeContent;
+    iframe.style.cssText = "position: absolute; visibility: hidden; pointer-events; none";
+    iframe.onload = () => {
+        iframe.contentWindow.postMessage({ code: script, args: args }, "*");
+    };
+
+    let output;
+
+    window.addEventListener("message", onMessage);
+
+    try {
+        document.body.appendChild(iframe);
+
+        try {
+            output = await promise;
+        }
+        finally {
+            iframe.remove();
+        }
+    }
+    finally {
+        window.removeEventListener("message", onMessage);
+    }
+
+    return output;
+}
+
 // Drag-Drop
 
 document.addEventListener("mousemove", e => wyDraggingUpdate(e));

@@ -5,13 +5,13 @@
 
 <button @onclick="ExpandAsync">
     @if (SelectedChampion == null)
-    {
-        <div class="no-champion-icon"></div>
-    }
-    else
-    {
-        <img class="champion-icon" src="@LeagueClient.Champions.GetIconUrl(SelectedChampion)">
-    }
+{
+    <div class="no-champion-icon"></div>
+}
+else
+{
+    <img class="champion-icon" src="@LeagueClient.Champions.GetIconUrl(SelectedChampion)">
+}
 </button>
 
 @if (_isExpanded)
@@ -21,10 +21,10 @@
         <input @ref="_searchInput" type="text" value="@_searchText" @onkeydown="OnKeyDown" @oninput="SearchTextChanged">
         <div class="search-results">
             @foreach (var r in _filteredChampions)
-            {
-                var result = r;
+        {
+            var result = r;
 
-                <MudGrid Spacing="0" Style="align-items:center" @onclick="() => SelectChampAsync(result)">
+            <MudGrid Spacing="0" Style="align-items:center" @onclick="() => SelectChampAsync(result)">
                     <MudItem>
                         <img class="champion-icon" src="@LeagueClient.Champions.GetIconUrl(result)">
                     </MudItem>
@@ -32,69 +32,69 @@
                         @result.Name
                     </MudItem>
                 </MudGrid>
-            }
+        }
         </div>
     </div>
 }
 
 @code {
-    private bool _isExpanded;
-    private bool _focusOnNextRender;
-    private string _searchText;
-    private Champion[] _filteredChampions { get; set; } = [];
+private bool _isExpanded;
+private bool _focusOnNextRender;
+private string _searchText;
+private Champion[] _filteredChampions { get; set; } = [];
 
-    private ElementReference _searchInput;
+private ElementReference _searchInput;
 
-    [Inject]
-    public IJSRuntime JSRuntime { get; set; }
+[Inject]
+public IJSRuntime JSRuntime { get; set; }
 
-    [Parameter]
-    public ICollection<Champion> Champions { get; set; }
+[Parameter]
+public ICollection<Champion> Champions { get; set; }
 
-    [Parameter]
-    public Champion SelectedChampion { get; set; }
+[Parameter]
+public Champion SelectedChampion { get; set; }
 
-    [Parameter]
-    public EventCallback<Champion> SelectedChampionChanged { get; set; }
+[Parameter]
+public EventCallback<Champion> SelectedChampionChanged { get; set; }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+protected override async Task OnAfterRenderAsync(bool firstRender)
+{
+    if (_focusOnNextRender)
     {
-        if (_focusOnNextRender)
+        _focusOnNextRender = false;
+        await JSRuntime.InvokeVoidAsync("HTMLInputElement.prototype.focus.call", _searchInput);
+        StateHasChanged();
+    }
+}
+
+private async Task ExpandAsync()
+{
+    _isExpanded = true;
+    _focusOnNextRender = true;
+}
+
+private void SearchTextChanged(ChangeEventArgs args)
+{
+    _searchText = args.Value?.ToString();
+    string asRegex = $".*{string.Join(string.Empty, _searchText?.Select(x => Regex.Escape(x.ToString()) + ".*"))}";
+    _filteredChampions = Champions.Where(x => Regex.IsMatch(x.Name, asRegex, RegexOptions.IgnoreCase)).Take(5).ToArray();
+}
+
+private async Task SelectChampAsync(Champion champion)
+{
+    _isExpanded = false;
+    await SelectedChampionChanged.InvokeAsync(SelectedChampion = champion);
+}
+
+private void OnKeyDown(KeyboardEventArgs args)
+{
+    if (args.Key == "Enter")
+    {
+        if (_filteredChampions.Any())
         {
-            _focusOnNextRender = false;
-            await JSRuntime.InvokeVoidAsync("HTMLInputElement.prototype.focus.call", _searchInput);
-            StateHasChanged();
+            SelectedChampionChanged.InvokeAsync(SelectedChampion = _filteredChampions.First());
+            _isExpanded = false;
         }
     }
-
-    private async Task ExpandAsync()
-    {
-        _isExpanded = true;
-        _focusOnNextRender = true;
-    }
-
-    private void SearchTextChanged(ChangeEventArgs args)
-    {
-        _searchText = args.Value?.ToString();
-        string asRegex = $".*{string.Join(string.Empty, _searchText?.Select(x => Regex.Escape(x.ToString()) + ".*"))}";
-        _filteredChampions = Champions.Where(x => Regex.IsMatch(x.Name, asRegex, RegexOptions.IgnoreCase)).Take(5).ToArray();
-    }
-
-    private async Task SelectChampAsync(Champion champion)
-    {
-        _isExpanded = false;
-        await SelectedChampionChanged.InvokeAsync(SelectedChampion = champion);
-    }
-
-    private void OnKeyDown(KeyboardEventArgs args)
-    {
-        if (args.Key == "Enter")
-        {
-            if (_filteredChampions.Any())
-            {
-                SelectedChampionChanged.InvokeAsync(SelectedChampion = _filteredChampions.First());
-                _isExpanded = false;
-            }
-        }
-    }
+}
 }

@@ -3,130 +3,168 @@ using SummonMyStrength.Api.Perks;
 using SummonMyStrength.Maui.Services.ChampSelect;
 using System.Text.Json;
 
-namespace SummonMyStrength.Maui
+namespace SummonMyStrength.Maui;
+
+static class DataStore
 {
-    static class DataStore
+    private static readonly string _dataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "My Games", "Summon My Strength", "data.json");
+
+    private static readonly DataStoreObject _data;
+
+    public static int? WindowWidth
     {
-        private static readonly string _dataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "My Games", "Summon My Strength", "data.json");
+        get => _data.WindowWidth;
+        set => _data.WindowWidth = value;
+    }
 
-        private static readonly DataStoreObject _data;
+    public static int? WindowHeight
+    {
+        get => _data.WindowHeight;
+        set => _data.WindowHeight = value;
+    }
 
-        public static int? WindowWidth
+    public static int? WindowX
+    {
+        get => _data.WindowX;
+        set => _data.WindowX = value;
+    }
+
+    public static int? WindowY
+    {
+        get => _data.WindowY;
+        set => _data.WindowY = value;
+    }
+
+    public static Dictionary<int, PerkPage[]> RunePages => _data.RunePages;
+
+    public static List<int> PreferredAramChampions
+    {
+        get => _data.PreferredAramChampions;
+        set => _data.PreferredAramChampions = value;
+    }
+
+    public static bool AutoAcceptReadyChecks
+    {
+        get => _data.AutoAcceptReadyChecks;
+        set => _data.AutoAcceptReadyChecks = value;
+    }
+
+    public static bool HandsFreeMode
+    {
+        get => _data.HandsFreeMode;
+        set => _data.HandsFreeMode = value;
+    }
+    
+    public static TradeResponse PickOrderTradeResponse
+    {
+        get => _data.PickOrderTradeResponse;
+        set => _data.PickOrderTradeResponse = value;
+    }
+
+    public static Dictionary<ChampSelectAssignedPosition, List<RecentPick>> RecentPicks => _data.RecentPicks;
+
+    public static Dictionary<int, List<RecentPick>> RecentBansByPick => _data.RecentBansByPick;
+
+    public static Dictionary<ChampSelectAssignedPosition, List<RecentPick>> RecentBansByRole => _data.RecentBansByPosition;
+
+    public static Dictionary<ChampSelectAssignedPosition, List<HandsFreePreference>> HandsFreePreferences => _data.HandsFreePreferences;
+
+    public static bool SkipPostGameStatsScreen
+    {
+        get => _data.SkipPostGameStatsScreen;
+        set => _data.SkipPostGameStatsScreen = value;
+    }
+
+    public static List<string> PostGameGraphStatIds => _data.PostGameGraphStatIds;
+
+    static DataStore()
+    {
+        _data =
+            File.Exists(_dataPath)
+                ? JsonSerializer.Deserialize<DataStoreObject>(File.ReadAllText(_dataPath))
+                : new DataStoreObject();
+
+        if (_data.WindowX < 0)
         {
-            get => _data.WindowWidth;
-            set => _data.WindowWidth = value;
+            _data.WindowX = 100;
         }
 
-        public static int? WindowHeight
+        if (_data.WindowY < 0)
         {
-            get => _data.WindowHeight;
-            set => _data.WindowHeight = value;
+            _data.WindowY = 100;
         }
 
-        public static int? WindowX
+        if (_data.WindowWidth < 300)
         {
-            get => _data.WindowX;
-            set => _data.WindowX = value;
+            _data.WindowWidth = 500;
         }
 
-        public static int? WindowY
+        if (_data.WindowHeight < 300)
         {
-            get => _data.WindowY;
-            set => _data.WindowY = value;
+            _data.WindowHeight = 650;
         }
 
-        public static Dictionary<int, PerkPage[]> RunePages => _data.RunePages;
-
-        public static List<int> PreferredAramChampions
+        _data.RunePages ??= [];
+        _data.PreferredAramChampions ??= [];
+        _data.RecentPicks ??= [];
+        _data.RecentBansByPick ??= [];
+        _data.RecentBansByPosition ??= [];
+        _data.HandsFreePreferences ??= new Dictionary<ChampSelectAssignedPosition, List<HandsFreePreference>>
         {
-            get => _data.PreferredAramChampions;
-            set => _data.PreferredAramChampions = value;
-        }
+            { ChampSelectAssignedPosition.Top, [] },
+            { ChampSelectAssignedPosition.Jungle, [] },
+            { ChampSelectAssignedPosition.Middle, [] },
+            { ChampSelectAssignedPosition.Bottom, [] },
+            { ChampSelectAssignedPosition.Support, [] }
+        };
 
-        public static bool AutoAcceptReadyChecks
-        {
-            get => _data.AutoAcceptReadyChecks;
-            set => _data.AutoAcceptReadyChecks = value;
-        }
+        _data.PostGameGraphStatIds ??=
+        [
+            "KDA",
+            "DMG",
+            "CS",
+            "VS",
+            "CC",
+            "MIT"
+        ];
+    }
 
-        public static bool HandsFreeMode
-        {
-            get => _data.HandsFreeMode;
-            set => _data.HandsFreeMode = value;
-        }
-        
-        public static TradeResponse PickOrderTradeResponse
-        {
-            get => _data.PickOrderTradeResponse;
-            set => _data.PickOrderTradeResponse = value;
-        }
+    public static async Task SaveAsync()
+    {
+        Directory.CreateDirectory(Path.GetDirectoryName(_dataPath));
+        await File.WriteAllTextAsync(_dataPath, JsonSerializer.Serialize(_data));
+    }
 
+    public class RecentPick
+    {
+        public int ChampionKey { get; set; }
+        public DateTime PickedAt { get; set; }
+    }
 
-        public static Dictionary<ChampSelectAssignedPosition, List<RecentPick>> RecentPicks => _data.RecentPicks;
+    public class HandsFreePreference
+    {
+        public int PickChampionId { get; set; }
+        public List<int> BanChampionIds { get; set; }
+        public int SummonerSpell1 { get; set; }
+        public int SummonerSpell2 { get; set; }
+    }
 
-        public static Dictionary<int, List<RecentPick>> RecentBansByPick => _data.RecentBansByPick;
-
-        public static Dictionary<ChampSelectAssignedPosition, List<RecentPick>> RecentBansByRole => _data.RecentBansByPosition;
-
-        public static Dictionary<ChampSelectAssignedPosition, List<HandsFreePreference>> HandsFreePreferences => _data.HandsFreePreferences;
-
-        static DataStore()
-        {
-            _data =
-                File.Exists(_dataPath)
-                    ? JsonSerializer.Deserialize<DataStoreObject>(File.ReadAllText(_dataPath))
-                    : new DataStoreObject();
-
-            _data.RunePages ??= [];
-            _data.PreferredAramChampions ??= [];
-            _data.RecentPicks ??= [];
-            _data.RecentBansByPick ??= [];
-            _data.RecentBansByPosition ??= [];
-            _data.HandsFreePreferences ??= new Dictionary<ChampSelectAssignedPosition, List<HandsFreePreference>>
-            {
-                { ChampSelectAssignedPosition.Top, [] },
-                { ChampSelectAssignedPosition.Jungle, [] },
-                { ChampSelectAssignedPosition.Middle, [] },
-                { ChampSelectAssignedPosition.Bottom, [] },
-                { ChampSelectAssignedPosition.Support, [] }
-            };
-        }
-
-        public static async Task SaveAsync()
-        {
-            Directory.CreateDirectory(Path.GetDirectoryName(_dataPath));
-            await File.WriteAllTextAsync(_dataPath, JsonSerializer.Serialize(_data));
-        }
-
-        public class RecentPick
-        {
-            public int ChampionKey { get; set; }
-            public DateTime PickedAt { get; set; }
-        }
-
-        public class HandsFreePreference
-        {
-            public int PickChampionId { get; set; }
-            public List<int> BanChampionIds { get; set; }
-            public int SummonerSpell1 { get; set; }
-            public int SummonerSpell2 { get; set; }
-        }
-
-        private class DataStoreObject
-        {
-            public int? WindowWidth { get; set; }
-            public int? WindowHeight { get; set; }
-            public int? WindowX { get; set; }
-            public int? WindowY { get; set; }
-            public Dictionary<int, PerkPage[]> RunePages { get; set; }
-            public List<int> PreferredAramChampions { get; set; }
-            public bool AutoAcceptReadyChecks { get; set; }
-            public bool HandsFreeMode { get; set; }
-            public TradeResponse PickOrderTradeResponse { get; set; }
-            public Dictionary<ChampSelectAssignedPosition, List<RecentPick>> RecentPicks { get; set; }
-            public Dictionary<int, List<RecentPick>> RecentBansByPick { get; set; }
-            public Dictionary<ChampSelectAssignedPosition, List<RecentPick>> RecentBansByPosition { get; set; }
-            public Dictionary<ChampSelectAssignedPosition, List<HandsFreePreference>> HandsFreePreferences { get; set; }
-        }
+    private class DataStoreObject
+    {
+        public int? WindowWidth { get; set; }
+        public int? WindowHeight { get; set; }
+        public int? WindowX { get; set; }
+        public int? WindowY { get; set; }
+        public Dictionary<int, PerkPage[]> RunePages { get; set; }
+        public List<int> PreferredAramChampions { get; set; }
+        public bool AutoAcceptReadyChecks { get; set; }
+        public bool HandsFreeMode { get; set; }
+        public TradeResponse PickOrderTradeResponse { get; set; }
+        public Dictionary<ChampSelectAssignedPosition, List<RecentPick>> RecentPicks { get; set; }
+        public Dictionary<int, List<RecentPick>> RecentBansByPick { get; set; }
+        public Dictionary<ChampSelectAssignedPosition, List<RecentPick>> RecentBansByPosition { get; set; }
+        public Dictionary<ChampSelectAssignedPosition, List<HandsFreePreference>> HandsFreePreferences { get; set; }
+        public bool SkipPostGameStatsScreen { get; set; }
+        public List<string> PostGameGraphStatIds { get; set; }
     }
 }

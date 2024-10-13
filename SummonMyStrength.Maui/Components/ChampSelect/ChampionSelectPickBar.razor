@@ -14,14 +14,14 @@
     </MudText>
     <div style="text-align: center">
         @foreach (var item in _champions)
-        {
-            var champion = item;
+    {
+        var champion = item;
 
-            <ChampionGridItem Champion="champion"
+        <ChampionGridItem Champion="champion"
                               OnClick="() => SelectChampionAsync(champion)"
                               Selected="champion == (_isBanning ?? false ? _selectedBan : _selectedPick)"
                               Disabled="IsChampionDisbled(champion.Id)" />
-        }
+    }
     </div>
     <HandsFreeModeToggle />
 }

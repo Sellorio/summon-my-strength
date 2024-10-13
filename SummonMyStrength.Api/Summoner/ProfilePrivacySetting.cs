@@ -1,8 +1,7 @@
-﻿namespace SummonMyStrength.Api.Summoner
+﻿namespace SummonMyStrength.Api.Summoner;
+
+public enum ProfilePrivacySetting
 {
-    public enum ProfilePrivacySetting
-    {
-        Private,
-        Public
-    }
+    Private,
+    Public
 }

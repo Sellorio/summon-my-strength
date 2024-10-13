@@ -18,12 +18,12 @@
 </MudGrid>
 
 @code {
-    private async Task PickOrderTradeResponseChanged(TradeResponse newValue)
+private async Task PickOrderTradeResponseChanged(TradeResponse newValue)
+{
+    if (DataStore.PickOrderTradeResponse != newValue)
     {
-        if (DataStore.PickOrderTradeResponse != newValue)
-        {
-            DataStore.PickOrderTradeResponse = newValue;
-            await DataStore.SaveAsync();
-        }
+        DataStore.PickOrderTradeResponse = newValue;
+        await DataStore.SaveAsync();
     }
+}
 }

@@ -1,7 +1,6 @@
-﻿namespace SummonMyStrength.Api.ChampSelect
+﻿namespace SummonMyStrength.Api.ChampSelect;
+
+public class CollectionsRental
 {
-    public class CollectionsRental
-    {
-        public bool Rented { get; set; }
-    }
+    public bool Rented { get; set; }
 }

@@ -1,9 +1,8 @@
-﻿namespace SummonMyStrength.Maui.Components
+﻿namespace SummonMyStrength.Maui.Components;
+
+public enum Popup
 {
-    public enum Popup
-    {
-        None,
-        Runes,
-        HandsFree
-    }
+    None,
+    Runes,
+    HandsFree
 }

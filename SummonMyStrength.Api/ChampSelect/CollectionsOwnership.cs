@@ -1,9 +1,8 @@
-﻿namespace SummonMyStrength.Api.ChampSelect
+﻿namespace SummonMyStrength.Api.ChampSelect;
+
+public class CollectionsOwnership
 {
-    public class CollectionsOwnership
-    {
-        public bool FreeToPlayReward { get; set; }
-        public bool Owned { get; set; }
-        public CollectionsRental Rental { get; set; }
-    }
+    public bool FreeToPlayReward { get; set; }
+    public bool Owned { get; set; }
+    public CollectionsRental Rental { get; set; }
 }

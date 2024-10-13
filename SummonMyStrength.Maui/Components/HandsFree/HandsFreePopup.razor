@@ -12,21 +12,21 @@
         <MudText Class="mt-4" Typo="Typo.h6">Preferences</MudText>
 
         @if (_isLoading)
-        {
-            <MudGrid Class="ma-8" Justify="Justify.Center">
+    {
+        <MudGrid Class="ma-8" Justify="Justify.Center">
                 <MudItem>
                     <MudProgressCircular Size="Size.Large" Indeterminate />
                 </MudItem>
             </MudGrid>
-        }
-        else
-        {
-            <MudTabs Class="mt-2" @bind-ActivePanelIndex="_activeTab" MinimumTabWidth="0">
+    }
+    else
+    {
+        <MudTabs Class="mt-2" @bind-ActivePanelIndex="_activeTab" MinimumTabWidth="0">
                 @foreach (var p in DataStore.HandsFreePreferences)
-                {
-                    var position = p;
+            {
+                var position = p;
 
-                    <MudTabPanel Text="@position.Key.ToDisplay()">
+                <MudTabPanel Text="@position.Key.ToDisplay()">
                         <MudGrid Spacing="0" Style="flex-wrap:nowrap">
                             <MudItem Style="width:25%">
                                 <MudText Typo="Typo.subtitle1">Pick</MudText>
@@ -42,11 +42,11 @@
                         </MudGrid>
 
                         @foreach (var pr in position.Value)
-                        {
-                            var preference = pr;
-                            var preferenceIndex = position.Value.IndexOf(preference);
+                    {
+                        var preference = pr;
+                        var preferenceIndex = position.Value.IndexOf(preference);
 
-                            <Draggable T="DataStore.HandsFreePreference" Key="preference" OnDragCompleted="() => position.Value.Remove(preference)" OnInsertDrop="x => position.Value.Insert(preferenceIndex, x)">
+                        <Draggable T="DataStore.HandsFreePreference" Key="preference" OnDragCompleted="() => position.Value.Remove(preference)" OnInsertDrop="x => position.Value.Insert(preferenceIndex, x)">
                                 <div class="preference-wrapper">
                                     <MudGrid Spacing="0" Style="flex-wrap:nowrap; align-items:center">
                                         <MudItem Style="width:25%">
@@ -54,19 +54,19 @@
                                         </MudItem>
                                         <MudItem Style="width:65%">
                                             @foreach (var ban in preference.BanChampionIds)
-                                            {
-                                                <button class="ban-item" @onclick="() => RemoveBanAsync(preference, ban)">
+                                        {
+                                            <button class="ban-item" @onclick="() => RemoveBanAsync(preference, ban)">
                                                     <img class="champion-icon" src="@LeagueClient.Champions.GetIconUrl(_champions[ban])">
                                                     <MudIcon Class="ban-remove-indicator" Color="Color.Error" Icon="@Icons.Material.Outlined.Close" />
                                                 </button>
-                                            }
+                                        }
 
                                             @if (preference.BanChampionIds.Count < 3)
-                                            {
-                                                <HandsFreeChampionSelect Champions="_champions.Values.Except([_champions[preference.PickChampionId],..preference.BanChampionIds.Select(x => _champions[x])]).ToList()"
+                                        {
+                                            <HandsFreeChampionSelect Champions="_champions.Values.Except([_champions[preference.PickChampionId],..preference.BanChampionIds.Select(x => _champions[x])]).ToList()"
                                                                          SelectedChampion="null"
                                                                          SelectedChampionChanged="x => AddBanAsync(preference, x)" />
-                                            }
+                                        }
                                         </MudItem>
                                         <MudItem Style="width:45%">
                                             <SummonerSpellSelect Spells="_spells.Values"
@@ -82,7 +82,7 @@
                                     </MudGrid>
                                 </div>
                             </Draggable>
-                        }
+                    }
 
                         <DragDropsite T="DataStore.HandsFreePreference" OnDrop="x => position.Value.Add(x)" />
 
@@ -98,78 +98,78 @@
                             </MudItem>
                         </MudGrid>
                     </MudTabPanel>
-                }
+            }
             </MudTabs>
-        }
+    }
     </PopupPanelWrapper>
 </div>
 
 @code {
-    private bool _isLoading;
-    private int _activeTab;
-    private Dictionary<int, Api.Champions.Champion> _champions;
-    private Dictionary<int, Api.SummonerSpells.SummonerSpell> _spells;
+private bool _isLoading;
+private int _activeTab;
+private Dictionary<int, Api.Champions.Champion> _champions;
+private Dictionary<int, Api.SummonerSpells.SummonerSpell> _spells;
 
-    [Parameter]
-    public EventCallback OnCloseClicked { get; set; }
+[Parameter]
+public EventCallback OnCloseClicked { get; set; }
 
-    protected override async Task OnInitializedAsync()
-    {
-        _isLoading = true;
-        _champions = (await LeagueClient.Champions.GetChampionsAsync()).ToDictionary(x => x.Id, x => x);
-        _spells = (await LeagueClient.SummonerSpells.GetSummonerSpellsAsync()).Where(x => x.Modes.Contains("CLASSIC")).ToDictionary(x => x.Id, x => x);
-        _isLoading = false;
-    }
+protected override async Task OnInitializedAsync()
+{
+    _isLoading = true;
+    _champions = (await LeagueClient.Champions.GetChampionsAsync()).ToDictionary(x => x.Id, x => x);
+    _spells = (await LeagueClient.SummonerSpells.GetSummonerSpellsAsync()).Where(x => x.Modes.Contains("CLASSIC")).ToDictionary(x => x.Id, x => x);
+    _isLoading = false;
+}
 
-    private async Task UpdateSummonerSpell1Async(DataStore.HandsFreePreference preference, SummonerSpell newSpell)
-    {
-        preference.SummonerSpell1 = newSpell.Id;
-        await DataStore.SaveAsync();
-    }
+private async Task UpdateSummonerSpell1Async(DataStore.HandsFreePreference preference, SummonerSpell newSpell)
+{
+    preference.SummonerSpell1 = newSpell.Id;
+    await DataStore.SaveAsync();
+}
 
-    private async Task UpdateSummonerSpell2Async(DataStore.HandsFreePreference preference, SummonerSpell newSpell)
-    {
-        preference.SummonerSpell2 = newSpell.Id;
-        await DataStore.SaveAsync();
-    }
+private async Task UpdateSummonerSpell2Async(DataStore.HandsFreePreference preference, SummonerSpell newSpell)
+{
+    preference.SummonerSpell2 = newSpell.Id;
+    await DataStore.SaveAsync();
+}
 
-    private async Task RemovePreferenceAsync(ChampSelectAssignedPosition position, DataStore.HandsFreePreference preference)
-    {
-        DataStore.HandsFreePreferences[position].Remove(preference);
-        await DataStore.SaveAsync();
-    }
+private async Task RemovePreferenceAsync(ChampSelectAssignedPosition position, DataStore.HandsFreePreference preference)
+{
+    DataStore.HandsFreePreferences[position].Remove(preference);
+    await DataStore.SaveAsync();
+}
 
-    private async Task AddPreferenceAsync(ChampSelectAssignedPosition position, Champion champion)
-    {
-        DataStore.HandsFreePreferences[position].Add(
-            new DataStore.HandsFreePreference
+private async Task AddPreferenceAsync(ChampSelectAssignedPosition position, Champion champion)
+{
+    DataStore.HandsFreePreferences[position].Add(
+        new DataStore.HandsFreePreference
+            {
+                PickChampionId = champion.Id,
+                BanChampionIds = [],
+                SummonerSpell1 = _spells.Values.First(x => x.Name == "Flash").Id,
+                SummonerSpell2 = position switch
                 {
-                    PickChampionId = champion.Id,
-                    BanChampionIds = [],
-                    SummonerSpell1 = _spells.Values.First(x => x.Name == "Flash").Id,
-                    SummonerSpell2 = position switch
-                    {
-                        ChampSelectAssignedPosition.Top => _spells.Values.First(x => x.Name == "Teleport").Id,
-                        ChampSelectAssignedPosition.Jungle => _spells.Values.First(x => x.Name == "Smite").Id,
-                        ChampSelectAssignedPosition.Middle => _spells.Values.First(x => x.Name == "Ignite").Id,
-                        ChampSelectAssignedPosition.Bottom => _spells.Values.First(x => x.Name == "Heal").Id,
-                        ChampSelectAssignedPosition.Support => _spells.Values.First(x => x.Name == "Exhaust").Id,
-                        _ => _spells.Values.First(x => x.Name == "Heal").Id,
-                    }
-                });
+                    ChampSelectAssignedPosition.Top => _spells.Values.First(x => x.Name == "Teleport").Id,
+                    ChampSelectAssignedPosition.Jungle => _spells.Values.First(x => x.Name == "Smite").Id,
+                    ChampSelectAssignedPosition.Middle => _spells.Values.First(x => x.Name == "Ignite").Id,
+                    ChampSelectAssignedPosition.Bottom => _spells.Values.First(x => x.Name == "Heal").Id,
+                    ChampSelectAssignedPosition.Support => _spells.Values.First(x => x.Name == "Exhaust").Id,
+                    _ => _spells.Values.First(x => x.Name == "Heal").Id,
+                }
+            });
 
-        await DataStore.SaveAsync();
-    }
+    await DataStore.SaveAsync();
+}
 
-    private async Task AddBanAsync(DataStore.HandsFreePreference preference, Champion champion)
-    {
-        preference.BanChampionIds.Add(champion.Id);
-        await DataStore.SaveAsync();
-    }
+private async Task AddBanAsync(DataStore.HandsFreePreference preference, Champion champion)
+{
+    preference.BanChampionIds.Add(champion.Id);
+    await DataStore.SaveAsync();
+}
 
-    private async Task RemoveBanAsync(DataStore.HandsFreePreference preference, int banChampionId)
-    {
-        preference.BanChampionIds.Remove(banChampionId);
-        await DataStore.SaveAsync();
-    }
+private async Task RemoveBanAsync(DataStore.HandsFreePreference preference, int banChampionId)
+{
+    preference.BanChampionIds.Remove(banChampionId);
+    await DataStore.SaveAsync();
+}
 }

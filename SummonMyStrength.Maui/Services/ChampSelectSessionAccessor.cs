@@ -1,42 +1,41 @@
 ﻿using SummonMyStrength.Api;
 using SummonMyStrength.Api.ChampSelect;
-using SummonMyStrength.Api.Gameflow;
+using SummonMyStrength.Api.General;
 
-namespace SummonMyStrength.Maui.Services
+namespace SummonMyStrength.Maui.Services;
+
+internal class ChampSelectSessionAccessor : IChampSelectSessionAccessor
 {
-    internal class ChampSelectSessionAccessor : IChampSelectSessionAccessor
+    private readonly LeagueClient _leagueClient;
+
+    public ChampSelectSession Session { get; private set; }
+
+    public event Func<ChampSelectSession, ChampSelectSession, Task> SessionChanged;
+
+    public ChampSelectSessionAccessor(LeagueClient leagueClient)
     {
-        private readonly LeagueClient _leagueClient;
+        _leagueClient = leagueClient;
+        _leagueClient.Gameflow.GameflowPhaseChanged += GameflowPhaseChanged;
+        _leagueClient.ChampSelect.SessionChanged += ChampSelectSessionChanged;
+    }
 
-        public ChampSelectSession Session { get; private set; }
-
-        public event Func<ChampSelectSession, ChampSelectSession, Task> SessionChanged;
-
-        public ChampSelectSessionAccessor(LeagueClient leagueClient)
+    private async Task GameflowPhaseChanged(GameflowPhase newPhase)
+    {
+        if (newPhase != GameflowPhase.ChampSelect && Session != null)
         {
-            _leagueClient = leagueClient;
-            _leagueClient.Gameflow.GameflowPhaseChanged += GameflowPhaseChanged;
-            _leagueClient.ChampSelect.SessionChanged += ChampSelectSessionChanged;
+            var oldSession = Session;
+            Session = null;
+            await SessionChanged.InvokeAsync(oldSession, null);
         }
+    }
 
-        private async Task GameflowPhaseChanged(GameflowPhase newPhase)
+    private async Task ChampSelectSessionChanged(ChampSelectSession session)
+    {
+        if (Session != session)
         {
-            if (newPhase != GameflowPhase.ChampSelect && Session != null)
-            {
-                var oldSession = Session;
-                Session = null;
-                await SessionChanged.InvokeAsync(oldSession, null);
-            }
-        }
-
-        private async Task ChampSelectSessionChanged(ChampSelectSession session)
-        {
-            if (Session != session)
-            {
-                var oldSession = Session;
-                Session = session;
-                await SessionChanged.InvokeAsync(oldSession, session);
-            }
+            var oldSession = Session;
+            Session = session;
+            await SessionChanged.InvokeAsync(oldSession, session);
         }
     }
 }

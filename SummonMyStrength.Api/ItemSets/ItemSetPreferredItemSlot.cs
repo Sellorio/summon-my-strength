@@ -1,8 +1,7 @@
-﻿namespace SummonMyStrength.Api.ItemSets
+﻿namespace SummonMyStrength.Api.ItemSets;
+
+public class ItemSetPreferredItemSlot
 {
-    public class ItemSetPreferredItemSlot
-    {
-        public string Id { get; set; }
-        public int PreferredItemSlot { get; set; }
-    }
+    public string Id { get; set; }
+    public int PreferredItemSlot { get; set; }
 }

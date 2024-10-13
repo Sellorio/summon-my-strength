@@ -1,9 +1,8 @@
-﻿namespace SummonMyStrength.Api.Matchmaking
+﻿namespace SummonMyStrength.Api.Matchmaking;
+
+public enum ReadyCheckPlayerResponse
 {
-    public enum ReadyCheckPlayerResponse
-    {
-        None,
-        Accepted,
-        Declined
-    }
+    None,
+    Accepted,
+    Declined
 }

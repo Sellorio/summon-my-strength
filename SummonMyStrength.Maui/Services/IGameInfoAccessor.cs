@@ -1,11 +1,10 @@
 ﻿using SummonMyStrength.Maui.Services.LiveApi;
 
-namespace SummonMyStrength.Maui.Services
+namespace SummonMyStrength.Maui.Services;
+
+public interface IGameInfoAccessor
 {
-    public interface IGameInfoAccessor
-    {
-        event Func<Task> GameInfoChanged;
-        GameInfo GameInfo { get; }
-        bool SaveStatisticsOnEnd { get; set; }
-    }
+    event Func<Task> GameInfoChanged;
+    GameInfo GameInfo { get; }
+    bool SaveStatisticsOnEnd { get; set; }
 }

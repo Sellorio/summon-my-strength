@@ -1,12 +1,11 @@
-﻿namespace SummonMyStrength.Api.Matchmaking
+﻿namespace SummonMyStrength.Api.Matchmaking;
+
+public enum ReadyCheckState
 {
-    public enum ReadyCheckState
-    {
-        Invalid,
-        InProgress,
-        EveryoneReady,
-        StrangerNotReady,
-        PartyNotReady,
-        Error
-    }
+    Invalid,
+    InProgress,
+    EveryoneReady,
+    StrangerNotReady,
+    PartyNotReady,
+    Error
 }

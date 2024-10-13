@@ -1,11 +1,10 @@
-﻿namespace SummonMyStrength.Api.ChampSelect
+﻿namespace SummonMyStrength.Api.ChampSelect;
+
+public enum ChampSelectAssignedPosition
 {
-    public enum ChampSelectAssignedPosition
-    {
-        Top,
-        Jungle,
-        Middle,
-        Support,
-        Bottom
-    }
+    Top,
+    Jungle,
+    Middle,
+    Support,
+    Bottom
 }

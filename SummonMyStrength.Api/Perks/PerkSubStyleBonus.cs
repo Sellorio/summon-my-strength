@@ -1,8 +1,7 @@
-﻿namespace SummonMyStrength.Api.Perks
+﻿namespace SummonMyStrength.Api.Perks;
+
+public class PerkSubStyleBonus
 {
-    public class PerkSubStyleBonus
-    {
-        public int PerkId { get; set; }
-        public int StyleId { get; set; }
-    }
+    public int PerkId { get; set; }
+    public int StyleId { get; set; }
 }

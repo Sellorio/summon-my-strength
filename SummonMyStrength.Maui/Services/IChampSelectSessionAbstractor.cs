@@ -1,16 +1,15 @@
 ﻿using SummonMyStrength.Api.ChampSelect;
 using SummonMyStrength.Maui.Services.ChampSelect;
 
-namespace SummonMyStrength.Maui.Services
+namespace SummonMyStrength.Maui.Services;
+
+public interface IChampSelectSessionAbstractor
 {
-    public interface IChampSelectSessionAbstractor
-    {
-        ChampSelectPhase Phase { get; }
-        int? SelectedChampionId { get; }
+    ChampSelectPhase Phase { get; }
+    int? SelectedChampionId { get; }
 
-        event Func<ChampSelectPhase, ChampSelectPhase, Task> OnPhaseChanged;
-        event Func<int?, int?, Task> OnSelectedChampionIdChanged;
+    event Func<ChampSelectPhase, ChampSelectPhase, Task> OnPhaseChanged;
+    event Func<int?, int?, Task> OnSelectedChampionIdChanged;
 
-        Task ApplyChangesAsync(ChampSelectSession session);
-    }
+    Task ApplyChangesAsync(ChampSelectSession session);
 }

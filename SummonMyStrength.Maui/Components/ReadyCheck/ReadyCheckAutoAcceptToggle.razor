@@ -8,9 +8,9 @@
 </MudGrid>
 
 @code {
-    private async Task CheckedChangedAsync(bool newValue)
-    {
-        DataStore.AutoAcceptReadyChecks = newValue;
-        await DataStore.SaveAsync();
-    }
+private async Task CheckedChangedAsync(bool newValue)
+{
+    DataStore.AutoAcceptReadyChecks = newValue;
+    await DataStore.SaveAsync();
+}
 }

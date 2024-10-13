@@ -8,9 +8,9 @@
 </MudGrid>
 
 @code {
-    private async Task HandsFreeModeChanged(bool newValue)
-    {
-        DataStore.HandsFreeMode = newValue;
-        await DataStore.SaveAsync();
-    }
+private async Task HandsFreeModeChanged(bool newValue)
+{
+    DataStore.HandsFreeMode = newValue;
+    await DataStore.SaveAsync();
+}
 }

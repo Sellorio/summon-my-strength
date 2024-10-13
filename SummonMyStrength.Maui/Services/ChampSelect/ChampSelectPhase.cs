@@ -1,15 +1,14 @@
-﻿namespace SummonMyStrength.Maui.Services.ChampSelect
+﻿namespace SummonMyStrength.Maui.Services.ChampSelect;
+
+public enum ChampSelectPhase
 {
-    public enum ChampSelectPhase
-    {
-        None,
-        PickIntent,
-        WaitingToBan,
-        Banning,
-        BanComplete,
-        WaitingToPick,
-        Picking,
-        PickCompelete,
-        FinalSetup
-    }
+    None,
+    PickIntent,
+    WaitingToBan,
+    Banning,
+    BanComplete,
+    WaitingToPick,
+    Picking,
+    PickCompelete,
+    FinalSetup
 }

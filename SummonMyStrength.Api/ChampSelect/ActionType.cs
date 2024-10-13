@@ -1,10 +1,9 @@
-﻿namespace SummonMyStrength.Api.ChampSelect
+﻿namespace SummonMyStrength.Api.ChampSelect;
+
+public enum ActionType
 {
-    public enum ActionType
-    {
-        Ban,
-        Pick,
-        TenBansReveal,
-        Other
-    }
+    Ban,
+    Pick,
+    TenBansReveal,
+    Other
 }

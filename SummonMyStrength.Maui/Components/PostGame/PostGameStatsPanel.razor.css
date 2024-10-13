@@ -1,0 +1,7 @@
+.post-game-stats {
+    padding: 10px;
+}
+
+.post-game-stats ::deep .mud-typography-h6 {
+    text-align: center;
+}

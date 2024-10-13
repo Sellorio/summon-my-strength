@@ -1,8 +1,7 @@
-﻿namespace SummonMyStrength.Api.ChampSelect
+﻿namespace SummonMyStrength.Api.ChampSelect;
+
+public class EntitledFeatureState
 {
-    public class EntitledFeatureState
-    {
-        public int AdditionalRerolls { get; set; }
-        public int[] UnlockedSkinIds { get; set; }
-    }
+    public int AdditionalRerolls { get; set; }
+    public int[] UnlockedSkinIds { get; set; }
 }

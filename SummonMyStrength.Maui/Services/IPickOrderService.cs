@@ -1,6 +1,5 @@
-﻿namespace SummonMyStrength.Maui.Services
+﻿namespace SummonMyStrength.Maui.Services;
+
+public interface IPickOrderService
 {
-    public interface IPickOrderService
-    {
-    }
 }

@@ -1,10 +1,9 @@
-﻿namespace SummonMyStrength.Maui.Services.ChampSelect
+﻿namespace SummonMyStrength.Maui.Services.ChampSelect;
+
+public enum TradeResponse
 {
-    public enum TradeResponse
-    {
-        None,
-        Accept,
-        Reject,
-        DownOnly
-    }
+    None,
+    Accept,
+    Reject,
+    DownOnly
 }

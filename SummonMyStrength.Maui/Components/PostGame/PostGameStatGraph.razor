@@ -1,0 +1,158 @@
+﻿@using SummonMyStrength.Api
+@using SummonMyStrength.Api.Champions
+@using SummonMyStrength.Api.PostGame
+@inject LeagueClient LeagueClient
+
+@if (_values != null)
+{
+    <div class="post-game-stat">
+        <div class="name">@StatReader.Name</div>
+        <div class="graph">
+            <div class="graph-content">
+                @for (var i = 0; i < _values.Length; i++)
+            {
+                var summonerName = _summonerNames[i];
+                var championName = _championNames[i];
+                var champion = _champions[championName];
+                var value = _values[i];
+                var graphCoordinate = _graphCoordinate[i];
+
+                <span class="node @(summonerName == LocalSummonerName ? "is-me" : "")" style="left:@(graphCoordinate)%">
+                        <MudTooltip Inline>
+                            <ChildContent>
+                                <span class="node-pin"></span>
+                            </ChildContent>
+                            <TooltipContent>
+                                <div class="graph-tooltip">
+                                    <img class="icon" alt="@championName" src="@LeagueClient.Champions.GetIconUrl(champion)">
+                                    <div class="summoner-name">@summonerName</div>
+                                    <div class="value">@Math.Round(value, 2)</div>
+                                </div>
+                            </TooltipContent>
+                        </MudTooltip>
+                    </span>
+            }
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+private const decimal CoordinatePadding = 2.0M; // minimum % coordinate shift between nodes
+
+private Dictionary<string, Champion> _champions;
+private string[] _summonerNames;
+private string[] _championNames;
+private decimal[] _values;
+private decimal[] _graphCoordinate;
+
+/// <summary>
+/// The local player's summoner name (without tag).
+/// </summary>
+[Parameter]
+public string LocalSummonerName { get; set; }
+
+[Parameter]
+public (string Key, string Name, Func<PostGamePlayerStats, decimal> reader) StatReader { get; set; }
+
+[Parameter]
+public PostGameStats Stats { get; set; }
+
+protected override async Task OnInitializedAsync()
+{
+    _champions = (await LeagueClient.Champions.GetChampionsAsync()).ToDictionary(x => x.Name, x => x);
+
+    var data = Stats.Teams.SelectMany(x => x.Players).Select(x => (x.SummonerName, x.ChampionName, StatReader.reader.Invoke(x))).OrderBy(x => x.Item3).ToList();
+
+    _summonerNames = data.Select(x => x.Item1).ToArray();
+    _championNames = data.Select(x => x.Item2).ToArray();
+    _values = data.Select(x => x.Item3).ToArray();
+    _graphCoordinate = GetGraphPercentCoordinates(_values);
+}
+
+private static decimal[] GetGraphPercentCoordinates(decimal[] orderedValues)
+{
+    decimal max = orderedValues.Max();
+    var result = orderedValues.Select(x => x / max * 100.0M).ToArray();
+
+    for (int i = 0; i < result.Length - 1; i++)
+    {
+        EnsureSeparateValues(result, i);
+    }
+
+    return result;
+}
+
+private static void EnsureSeparateValues(decimal[] coordinates, int leftIndex)
+{
+    // this is the last coordinate (there's nothing on the right of it)
+    if (leftIndex == coordinates.Length - 1)
+    {
+        return;
+    }
+
+    var left = coordinates[leftIndex];
+    var right = coordinates[leftIndex + 1];
+    var delta = right - left;
+
+    if (delta > CoordinatePadding)
+    {
+        // sufficient padding exists
+        return;
+    }
+
+    var missingDelta = CoordinatePadding - delta;
+    var halfMissingDelta = missingDelta / 2.0M;
+
+    ShiftLeft(coordinates, leftIndex, halfMissingDelta);
+    ShiftRight(coordinates, leftIndex + 1, halfMissingDelta);
+}
+
+private static void ShiftLeft(decimal[] coordinates, int index, decimal shiftAmount)
+{
+    var coordinate = coordinates[index];
+    var newCoordinate = coordinate - shiftAmount;
+
+    if (index > 0)
+    {
+        var leftCoordinate = coordinates[index - 1];
+        var newDelta = newCoordinate - leftCoordinate;
+
+        if (newDelta < CoordinatePadding)
+        {
+            ShiftLeft(coordinates, index - 1, CoordinatePadding - newDelta);
+        }
+    }
+    else if (newCoordinate < 0)
+    {
+        ShiftRight(coordinates, index + 1, -newCoordinate);
+        newCoordinate = 0;
+    }
+
+    coordinates[index] = newCoordinate;
+}
+
+private static void ShiftRight(decimal[] coordinates, int index, decimal shiftAmount)
+{
+    var coordinate = coordinates[index];
+    var newCoordinate = coordinate + shiftAmount;
+
+    if (index < coordinates.Length - 1)
+    {
+        var rightCoordinate = coordinates[index + 1];
+        var newDelta = rightCoordinate - newCoordinate;
+
+        if (newDelta < 0)
+        {
+            ShiftRight(coordinates, index + 1, -newDelta);
+        }
+    }
+    else if (newCoordinate > 100.0M)
+    {
+        ShiftLeft(coordinates, index - 1, newCoordinate - 100.0M);
+        newCoordinate = 100.0M;
+    }
+
+    coordinates[index] = newCoordinate;
+}
+}

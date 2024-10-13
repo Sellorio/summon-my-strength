@@ -4,36 +4,35 @@ using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-namespace SummonMyStrength.Api.Items
+namespace SummonMyStrength.Api.Items;
+
+public class ItemsModule
 {
-    public class ItemsModule
+    private readonly LeagueClient _client;
+    private string _dataDragonVersion;
+    private Dictionary<string, Item> _itemCache;
+
+    public ItemsModule(LeagueClient client)
     {
-        private readonly LeagueClient _client;
-        private string _dataDragonVersion;
-        private Dictionary<string, Item> _itemCache;
+        _client = client;
+    }
 
-        public ItemsModule(LeagueClient client)
+    public async Task<Dictionary<string, Item>> GetItemsAsync()
+    {
+        if (_itemCache != null)
         {
-            _client = client;
+            return _itemCache;
         }
 
-        public async Task<Dictionary<string, Item>> GetItemsAsync()
-        {
-            if (_itemCache != null)
-            {
-                return _itemCache;
-            }
+        var version = _dataDragonVersion ??= JsonSerializer.Deserialize<string[]>(await _client.DataDragonHttpClient.GetStringAsync("api/versions.json"))[0];
+        var json = await _client.DataDragonHttpClient.GetStringAsync($"cdn/{version}/data/en_US/item.json");
+        var itemData = JsonSerializer.Deserialize<DataWrapper<Dictionary<string, Item>>>(json, LeagueClient.JsonSerializerOptions);
 
-            var version = _dataDragonVersion ??= JsonSerializer.Deserialize<string[]>(await _client.DataDragonHttpClient.GetStringAsync("api/versions.json"))[0];
-            var json = await _client.DataDragonHttpClient.GetStringAsync($"cdn/{version}/data/en_US/item.json");
-            var itemData = JsonSerializer.Deserialize<DataWrapper<Dictionary<string, Item>>>(json, LeagueClient.JsonSerializerOptions);
+        return _itemCache = itemData.Data;
+    }
 
-            return _itemCache = itemData.Data;
-        }
-
-        public string GetIconUrl(Champion champion)
-        {
-            return $"{_client.DataDragonHttpClient.BaseAddress.AbsoluteUri}cdn/{_dataDragonVersion}/img/item/{champion.Image.Full}";
-        }
+    public string GetIconUrl(Champion champion)
+    {
+        return $"{_client.DataDragonHttpClient.BaseAddress.AbsoluteUri}cdn/{_dataDragonVersion}/img/item/{champion.Image.Full}";
     }
 }

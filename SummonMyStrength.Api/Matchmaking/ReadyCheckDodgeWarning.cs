@@ -1,9 +1,8 @@
-﻿namespace SummonMyStrength.Api.Matchmaking
+﻿namespace SummonMyStrength.Api.Matchmaking;
+
+public enum ReadyCheckDodgeWarning
 {
-    public enum ReadyCheckDodgeWarning
-    {
-        None,
-        Warning,
-        Penalty
-    }
+    None,
+    Warning,
+    Penalty
 }
