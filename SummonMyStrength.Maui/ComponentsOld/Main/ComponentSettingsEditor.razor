@@ -1,0 +1,45 @@
+﻿@implements IDisposable
+@inject IComponentSettingsService ComponentSettingsService
+
+<MudTabs MinimumTabWidth="0">
+    @* Fun fact, "section" as a variable name is secretly a reserved word so we are using "sectionTitle" instead *@
+    @foreach (var sectionTitle in ComponentSettingsService.GetSettingsSections())
+    {
+        <MudTabPanel Text="@sectionTitle">
+            <div class="pa-4">
+                @{
+                    var isFirst = true;
+                }
+
+                @foreach (var form in ComponentSettingsService.GetSettingsForms(sectionTitle))
+                {
+                    @form
+
+                    if (!isFirst)
+                    {
+                        <hr>
+                    }
+
+                    isFirst = false;
+                }
+            </div>
+        </MudTabPanel>
+    }
+</MudTabs>
+
+@code {
+    protected override void OnInitialized()
+    {
+        ComponentSettingsService.SettingsChanged += SettingsChanged;
+    }
+
+    public void Dispose()
+    {
+        ComponentSettingsService.SettingsChanged -= SettingsChanged;
+    }
+
+    private void SettingsChanged()
+    {
+        StateHasChanged();
+    }
+}

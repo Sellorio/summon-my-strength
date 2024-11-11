@@ -1,0 +1,40 @@
+﻿@using SummonMyStrength.Api.PowerSystems.SummonerSpells
+@inject ISummonerSpellService SummonerSpellService
+
+<MudDialog>
+    <TitleContent>Summoner Spells</TitleContent>
+    <DialogContent>
+        <div class="summoner-spells">
+            @foreach (var s in _summonerSpells.Where(x => x.Modes.Contains("CLASSIC")))
+            {
+                var spell = s;
+
+                <div class="summoner-spell" @onclick="() => SpellSelected(spell)">
+                    <img alt="@spell.Name" src="@SummonerSpellService.GetIconUrl(spell)">
+                </div>
+            }
+        </div>
+    </DialogContent>
+</MudDialog>
+
+@code {
+    private SummonerSpell[] _summonerSpells;
+
+    [CascadingParameter]
+    public MudDialogInstance DialogInstance { get; set; }
+
+    [Parameter]
+    public int SelectedSpellId { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        DialogInstance.SetOptions(new DialogOptions { CloseButton = true });
+
+        _summonerSpells = await SummonerSpellService.GetSummonerSpellsAsync();
+    }
+
+    private void SpellSelected(SummonerSpell spell)
+    {
+        DialogInstance.Close(spell.Id);
+    }
+}

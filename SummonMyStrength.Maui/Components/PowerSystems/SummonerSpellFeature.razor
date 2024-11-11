@@ -1,0 +1,130 @@
+﻿@using SummonMyStrength.Api.ChampSelect
+@using SummonMyStrength.Api.PowerSystems.SummonerSpells
+@using SummonMyStrength.Maui.Data
+@inject IChampSelectSessionService ChampSelectSessionService
+@inject IUserSettingsService UserSettingsService
+@inject ISummonerSpellService SummonerSpellService
+@inject ISummonerSpellSelectionService SummonerSpellSelectionService
+
+<ComponentSettings SectionName="Summoner Spells">
+    <SummonerSpellSettings SettingsChanged="SettingsChanged" />
+</ComponentSettings>
+
+@code {
+    private SummonerSpell[] _summonerSpells;
+    private int? _selectedChampionId;
+    private ChampSelectAssignedPosition _position;
+    private UserSettings _userSettings;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _userSettings = await UserSettingsService.GetSettingsAsync();
+        _summonerSpells = await SummonerSpellService.GetSummonerSpellsAsync();
+
+        ChampSelectSessionService.ChampSelectSessionCreated += ChampSelectSessionCreated;
+        ChampSelectSessionService.ChampSelectSessionUpdated += ChampSelectSessionUpdated;
+        ChampSelectSessionService.ChampSelectSessionDeleted += ChampSelectSessionDeleted;
+
+        var session = await ChampSelectSessionService.GetSessionAsync();
+
+        if (session != null)
+        {
+            _selectedChampionId = GetSelectedChampionId(session);
+            _position = session.Player?.Position ?? ChampSelectAssignedPosition.Middle;
+
+            if (_selectedChampionId != null)
+            {
+                await SetSummonerSpellsAsync(_selectedChampionId.Value, _position);
+            }
+        }
+    }
+
+    private async Task ChampSelectSessionCreated(ChampSelectSession session)
+    {
+        // in aram, champ would be selected immediately
+        _selectedChampionId = GetSelectedChampionId(session);
+        _position = session.Player?.Position ?? ChampSelectAssignedPosition.Middle;
+
+        if (_selectedChampionId != null)
+        {
+            await SetSummonerSpellsAsync(_selectedChampionId.Value, _position);
+        }
+    }
+
+    private async Task ChampSelectSessionUpdated(ChampSelectSession session)
+    {
+        var newSelectedChampionId = GetSelectedChampionId(session);
+
+        if (newSelectedChampionId != null && newSelectedChampionId != _selectedChampionId)
+        {
+            _selectedChampionId = newSelectedChampionId;
+            await SetSummonerSpellsAsync(_selectedChampionId.Value, _position);
+        }
+    }
+
+    private Task ChampSelectSessionDeleted(ChampSelectSession session)
+    {
+        _selectedChampionId = null;
+        return Task.CompletedTask;
+    }
+
+    private int? GetSelectedChampionId(ChampSelectSession session)
+    {
+        var championId =
+            session.Player == null
+                ? 0
+                : (session.Player.ChampionId != default ? session.Player.ChampionId : session.Player.ChampionPickIntent);
+
+        return championId == 0 ? null : championId;
+    }
+
+    private async Task SettingsChanged()
+    {
+        if (_userSettings.AutoSetSummonerSpells && _selectedChampionId != null)
+        {
+            await SetSummonerSpellsAsync(_selectedChampionId.Value, _position);
+        }
+    }
+
+    private async Task SetSummonerSpellsAsync(int championId, ChampSelectAssignedPosition position)
+    {
+        if (_userSettings.SummonerSpellPreferences.TryGetValue(championId, out var preferences))
+        {
+            if (!preferences.TryGetValue((AssignedPositionOrDefault)position, out var spellIds))
+            {
+                spellIds = preferences[AssignedPositionOrDefault.Default];
+
+                if (position == ChampSelectAssignedPosition.Jungle && spellIds.Spell1 != SpellId.Smite && spellIds.Spell2 != SpellId.Smite)
+                {
+                    if (spellIds.Spell2 is SpellId.Flash or SpellId.Ghost)
+                    {
+                        spellIds = new()
+                        {
+                            Spell1 = SpellId.Smite,
+                            Spell2 = spellIds.Spell2
+                        };
+                    }
+                    else
+                    {
+                        spellIds = new()
+                        {
+                            Spell1 = spellIds.Spell1,
+                            Spell2 = SpellId.Smite
+                        };
+                    }
+                }
+            }
+
+            var spell1 = _summonerSpells.FirstOrDefault(x => x.Id == spellIds.Spell1);
+            var spell2 = _summonerSpells.FirstOrDefault(x => x.Id == spellIds.Spell2);
+
+            if (spell1 == null || spell2 == null)
+            {
+                // just don't update spells if the data is out of date.
+                return;
+            }
+
+            await SummonerSpellSelectionService.SelectSummonerSpellsAsync(spell1, spell2);
+        }
+    }
+}

@@ -1,0 +1,79 @@
+﻿@using SummonMyStrength.Api.Connectors
+@using SummonMyStrength.Api.General
+@implements IDisposable
+@inject ILeagueClientWebSocketConnector LeagueClientWebSocketConnector
+@inject IGameflowService GameflowService
+
+<MudAppBar Fixed="false">
+    <MudGrid Justify="Justify.SpaceBetween">
+        <MudItem>
+            @if (_isConnected)
+            {
+                <MudText Typo="Typo.h6" Color="Color.Success" Class="ml-4 mr-8">Connected</MudText>
+            }
+            else
+            {
+                <MudText Typo="Typo.h6" Color="Color.Error" Class="ml-4 mr-8">Not Connected</MudText>
+            }
+        </MudItem>
+        <MudItem>
+            @if (_currentPhase != null)
+            {
+                <MudText Typo="Typo.h6" Color="Color.Info">Status: @_currentPhase.ToDisplay()</MudText>
+            }
+        </MudItem>
+        <MudItem>
+            <MudIconButton Icon="@Icons.Material.Outlined.Settings" Color="Color.Inherit" Class="pa-1" OnClick="() => ShowSettingsChanged.InvokeAsync(ShowSettings = !ShowSettings)" Disabled="Disabled" />
+        </MudItem>
+    </MudGrid>
+</MudAppBar>
+
+@code {
+    private bool _isConnected;
+    private GameflowPhase? _currentPhase;
+
+    [Parameter]
+    public bool ShowSettings { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> ShowSettingsChanged { get; set; }
+
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    protected override void OnInitialized()
+    {
+        LeagueClientWebSocketConnector.Connected += ConnectionStatusChanged;
+        LeagueClientWebSocketConnector.Disconnected += ConnectionStatusChanged;
+        GameflowService.PhaseChanged += GameflowPhaseChanged;
+    }
+
+    public void Dispose()
+    {
+        LeagueClientWebSocketConnector.Connected -= ConnectionStatusChanged;
+        LeagueClientWebSocketConnector.Disconnected -= ConnectionStatusChanged;
+        GameflowService.PhaseChanged -= GameflowPhaseChanged;
+    }
+
+    private async Task ConnectionStatusChanged()
+    {
+        _isConnected = LeagueClientWebSocketConnector.IsConnected;
+
+        if (_isConnected)
+        {
+            _currentPhase = await GameflowService.GetPhaseAsync();
+        }
+        else
+        {
+            _currentPhase = null;
+        }
+    
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task GameflowPhaseChanged(GameflowPhase newPhase)
+    {
+        _currentPhase = newPhase;
+        await InvokeAsync(StateHasChanged);
+    }
+}

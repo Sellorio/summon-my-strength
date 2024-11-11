@@ -1,0 +1,66 @@
+﻿@implements IDisposable
+@inject IComponentSettingsService ComponentSettingsService
+
+@code {
+    private string _sectionNameSnapshot;
+    private RenderFragment _childContentSnapshot;
+
+    [Parameter]
+    public string SectionName { get; set; }
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    protected override void OnInitialized()
+    {
+        _sectionNameSnapshot = SectionName;
+        ComponentSettingsService.AddComponentSettings(_sectionNameSnapshot, this, ChildContent);
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        ComponentSettingsService.RefreshEditors();
+    }
+
+    public override async Task SetParametersAsync(ParameterView parameters)
+    {
+        await base.SetParametersAsync(parameters);
+
+        if (_sectionNameSnapshot == null)
+        {
+            RegisterSettingsSection();
+        }
+        else if (_sectionNameSnapshot != null && _sectionNameSnapshot != SectionName)
+        {
+            DeregisterSettingsSection();
+            RegisterSettingsSection();
+        }
+        else if (_childContentSnapshot != ChildContent)
+        {
+            DeregisterSettingsSection();
+            RegisterSettingsSection();
+        }
+    }
+
+    private void RegisterSettingsSection()
+    {
+        ComponentSettingsService.AddComponentSettings(SectionName, this, ChildContent);
+        _sectionNameSnapshot = SectionName;
+        _childContentSnapshot = ChildContent;
+    }
+
+    private void DeregisterSettingsSection()
+    {
+        if (_sectionNameSnapshot != null)
+        {
+            ComponentSettingsService.RemoveComponentSettings(_sectionNameSnapshot, this);
+            _sectionNameSnapshot = null;
+            _childContentSnapshot = null;
+        }
+    }
+
+    public void Dispose()
+    {
+        DeregisterSettingsSection();
+    }
+}

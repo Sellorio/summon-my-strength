@@ -1,0 +1,22 @@
+.summoner-spells {
+    display: flex;
+    flex-wrap: wrap;
+    margin: -5px;
+    width: 300px;
+}
+
+.summoner-spell {
+    display: inline-block;
+    margin: 5px;
+    cursor: pointer;
+}
+
+.summoner-spell img {
+    display: block;
+    filter: brightness(0.8);
+    transition: filter 0.05s linear;
+}
+
+.summoner-spell:hover img {
+    filter: brightness(1.25) contrast(0.93);
+}

@@ -1,6 +1,4 @@
-﻿using SummonMyStrength.Api.Gameflow;
-using System.Diagnostics;
-using System.Net.Http;
+﻿using System.Diagnostics;
 using System.Net.WebSockets;
 using System.Net;
 using System.Text;
@@ -12,6 +10,7 @@ using System.Threading;
 using System.Collections.Generic;
 using SummonMyStrength.Api.Connectors.WebSocket;
 using System.Linq;
+using System.IO;
 
 namespace SummonMyStrength.Api.Connectors;
 
@@ -31,7 +30,7 @@ internal class LeagueClientWebSocketConnector : ILeagueClientWebSocketConnector
 
     private readonly ILeagueConnectionSettingsProvider _connectionSettingsProvider;
     private readonly ILeagueClientApiConnector _clientApi;
-    private readonly List<LeagueMessageHandler> _messageHandlers;
+    private readonly List<LeagueMessageHandler> _messageHandlers = new();
     private ClientWebSocket _socket;
     private CancellationTokenSource _cancellationTokenSource;
 
@@ -135,6 +134,7 @@ internal class LeagueClientWebSocketConnector : ILeagueClientWebSocketConnector
 
             await _socket.SendAsync(Encoding.UTF8.GetBytes("[5, \"OnJsonApiEvent\"]"), WebSocketMessageType.Text, true, _cancellationTokenSource.Token);
 
+            IsConnected = true;
             await Connected.InvokeAsync();
         }
         catch (WebSocketException ex) when (ex.Message.Contains("Unable to connect"))
@@ -221,6 +221,7 @@ internal class LeagueClientWebSocketConnector : ILeagueClientWebSocketConnector
         var eventData = rawMessage[2];
         var uri = eventData.GetProperty("uri").GetString();
         var eventType = eventData.GetProperty("eventType").GetString();
+        var eventBody = eventData.GetProperty("data");
 
         var messageId = LeagueMessageHelper.ParseMessageId(uri);
         var messageAction = LeagueMessageHelper.ParseAction(eventType);
@@ -230,7 +231,7 @@ internal class LeagueClientWebSocketConnector : ILeagueClientWebSocketConnector
         {
             if (!deserializedPayloadInstances.TryGetValue(handler.PayloadType, out var messagePayload))
             {
-                messagePayload = JsonSerializer.Deserialize(eventData, handler.PayloadType, _jsonOptions);
+                messagePayload = JsonSerializer.Deserialize(eventBody, handler.PayloadType, _jsonOptions);
                 deserializedPayloadInstances.Add(handler.PayloadType, messagePayload);
             }
 

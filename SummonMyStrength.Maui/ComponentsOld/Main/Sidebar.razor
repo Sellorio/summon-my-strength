@@ -1,0 +1,23 @@
+﻿<MudDrawer Fixed="false" Elevation="1" Variant="DrawerVariant.Mini" Style="z-index: 9999" Open="Expanded" OpenChanged="x => { Expanded = x; return ExpandedChanged.InvokeAsync(x); }">
+    <MudNavMenu>
+        <MudNavLink title="Runes" Icon="@Icons.Material.Outlined.OfflineBolt" OnClick="OnOpenRunes" Disabled="Disabled">Runes</MudNavLink>
+        <MudNavLink title="Hnads-Free" Icon="@Icons.Material.Outlined.DoNotTouch" OnClick="OnOpenHandsFree" Disabled="Disabled">Hands-Free</MudNavLink>
+    </MudNavMenu>
+</MudDrawer>
+
+@code {
+    [Parameter]
+    public bool Expanded { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> ExpandedChanged { get; set; }
+
+    [Parameter]
+    public EventCallback OnOpenRunes { get; set; }
+
+    [Parameter]
+    public EventCallback OnOpenHandsFree { get; set; }
+
+    [Parameter]
+    public bool Disabled { get; set; }
+}

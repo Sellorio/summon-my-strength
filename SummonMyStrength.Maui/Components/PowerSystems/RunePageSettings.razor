@@ -1,0 +1,40 @@
+﻿@using SummonMyStrength.Api.Collections.Champions
+@using SummonMyStrength.Api.PowerSystems.Runes
+@using SummonMyStrength.Maui.Components.Collections.Champions
+@inject IChampionService ChampionService
+@inject IRunePageService RunePageService
+
+<MudText Typo="Typo.h6">Select a champion</MudText>
+<MudText Typo="Typo.body2" Class="d-block">Once selected, use the League of Legends Client to edit your runes.</MudText>
+<MudTextField Class="mt-4" Label="Search" @bind-Value="_championSearchText" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Outlined.Search" Immediate />
+<div class="mt-4" style="text-align: center">
+    @if (_champions != null)
+    {
+        foreach (var c in _champions.Where(x => string.IsNullOrWhiteSpace(_championSearchText) || x.Name.Contains(_championSearchText, StringComparison.OrdinalIgnoreCase)))
+        {
+            var champion = c;
+            <ChampionGridItem Champion="champion" Selected="RunesLoadedFor == champion" OnClick="() => OnRunePageLoadRequested.InvokeAsync(champion)" />
+        }
+    }
+</div>
+
+@code {
+    private Champion[] _champions;
+    private string _championSearchText;
+
+    [Parameter]
+    public Champion RunesLoadedFor { get; set; }
+
+    [Parameter]
+    public EventCallback<Champion> OnRunePageLoadRequested { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _champions = await ChampionService.GetChampionsAsync();
+    }
+
+    public new void StateHasChanged()
+    {
+        base.StateHasChanged();
+    }
+}

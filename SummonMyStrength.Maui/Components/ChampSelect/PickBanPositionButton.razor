@@ -1,0 +1,17 @@
+﻿@using SummonMyStrength.Api.ChampSelect
+
+<button class="position-button @(SelectedPosition == Position ? "selected" : "")" @onclick="OnClick">
+    <img class="position-icon" alt="@Position" src="@($"img/positions/icon-position-{Position.ToString().ToLower()}-blue.png")">
+    <span>@Position</span>
+</button>
+
+@code {
+    [Parameter]
+    public ChampSelectAssignedPosition Position { get; set; }
+
+    [Parameter]
+    public ChampSelectAssignedPosition? SelectedPosition { get; set; }
+
+    [Parameter]
+    public EventCallback OnClick { get; set; }
+}

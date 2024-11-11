@@ -1,0 +1,17 @@
+﻿@using SummonMyStrength.Api.ChampSelect
+
+<div class="position-buttons">
+    <PickBanPositionButton Position="ChampSelectAssignedPosition.Top" SelectedPosition="SelectedPosition" OnClick="() => OnPositionSelected.InvokeAsync(ChampSelectAssignedPosition.Top)" />
+    <PickBanPositionButton Position="ChampSelectAssignedPosition.Jungle" SelectedPosition="SelectedPosition" OnClick="() => OnPositionSelected.InvokeAsync(ChampSelectAssignedPosition.Jungle)" />
+    <PickBanPositionButton Position="ChampSelectAssignedPosition.Middle" SelectedPosition="SelectedPosition" OnClick="() => OnPositionSelected.InvokeAsync(ChampSelectAssignedPosition.Middle)" />
+    <PickBanPositionButton Position="ChampSelectAssignedPosition.Bottom" SelectedPosition="SelectedPosition" OnClick="() => OnPositionSelected.InvokeAsync(ChampSelectAssignedPosition.Bottom)" />
+    <PickBanPositionButton Position="ChampSelectAssignedPosition.Support" SelectedPosition="SelectedPosition" OnClick="() => OnPositionSelected.InvokeAsync(ChampSelectAssignedPosition.Support)" />
+</div>
+
+@code {
+    [Parameter]
+    public ChampSelectAssignedPosition? SelectedPosition { get; set; }
+
+    [Parameter]
+    public EventCallback<ChampSelectAssignedPosition> OnPositionSelected { get; set; }
+}

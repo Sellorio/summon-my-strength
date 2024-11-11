@@ -1,0 +1,75 @@
+.champion-preferences {
+    margin-top: -8px;
+}
+
+.champion-preferences ::deep .mud-list-item {
+    background: #3F3F48;
+}
+
+.champion-preferences ::deep .mud-list-item-text {
+    margin: 0;
+}
+
+.champion-preference ::deep .mud-grid {
+    align-items: center;
+}
+
+.champion-preference ::deep .order {
+    width: 45px;
+}
+
+.champion-preference:not(.header) ::deep .order {
+    font-size: 18px;
+}
+
+.champion-preference ::deep .pick {
+    width: 75px;
+}
+
+.champion-preference ::deep .bans {
+    flex-grow: 1;
+}
+
+.champion-icon {
+    display: block;
+    width: 50px;
+    height: 50px;
+}
+
+.add-ban,
+.add-pick {
+    width: 50px;
+    height: 50px;
+    background: rgba(0,0,0,0.1);
+    box-shadow: rgba(0,0,0,0.3) 0 0 2px 2.5px inset;
+    transition: background 0.05s linear;
+}
+
+.add-ban:hover,
+.add-pick:hover {
+    background: rgba(0,0,0,0.03);
+}
+
+.add-pick {
+    margin-bottom: 8px;
+    margin-left: 45px;
+}
+
+.remove-ban {
+    position: relative;
+    margin-right: 5px;
+}
+
+.remove-ban ::deep .remove-icon {
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    padding: 2px;
+    filter: drop-shadow(black 0px 0px 1.5px) drop-shadow(black 0px 0px 1.5px);
+    opacity: 0;
+    transition: opacity 0.08s linear;
+}
+
+.remove-ban:hover ::deep .remove-icon {
+    opacity: 1;
+}

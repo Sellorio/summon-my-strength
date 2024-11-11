@@ -1,0 +1,31 @@
+.champion-header {
+    display: flex;
+    align-items: center;
+    margin-left: -5px;
+    margin-right: 20px;
+}
+
+.champion-header img {
+    width: 50px;
+    height: 50px;
+    margin-right: 20px;
+}
+
+.champion-header div {
+    font-size: 120%;
+    flex-grow: 1;
+}
+
+.champion-body {
+    margin-left: -15px;
+    margin-right: -15px;
+    margin-bottom: 10px;
+    padding: 10px;
+    border-radius: 5px;
+    background: rgba(255,255,255,0.1);
+}
+
+hr {
+    margin: 8px 0;
+    border: 1px solid #999;
+}

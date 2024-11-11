@@ -1,0 +1,38 @@
+﻿@using SummonMyStrength.Maui.Data
+@using SummonMyStrength.Maui.Services.ChampSelect
+@inject IUserSettingsService UserSettingsService
+
+<MudGrid Justify="Justify.Center" Style="align-items: center">
+    <MudItem xs="5">
+        <MudText Typo="Typo.subtitle2">Pick order trades?</MudText>
+    </MudItem>
+    <MudItem>
+        <div class="pick-order-chips">
+            <MudChip Size="Size.Medium" Text="Ignore" OnClick="() => PickOrderTradeResponseChanged(TradeResponse.None)" Color="Color.Primary" Variant="_userSettings.PickOrderTradeResponse == TradeResponse.None ? Variant.Filled : Variant.Outlined" />
+            <MudChip Size="Size.Medium" Text="Accept" OnClick="() => PickOrderTradeResponseChanged(TradeResponse.Accept)" Color="Color.Primary" Variant="_userSettings.PickOrderTradeResponse == TradeResponse.Accept ? Variant.Filled : Variant.Outlined" />
+            <MudChip Size="Size.Medium" Text="Reject" OnClick="() => PickOrderTradeResponseChanged(TradeResponse.Reject)" Color="Color.Primary" Variant="_userSettings.PickOrderTradeResponse == TradeResponse.Reject ? Variant.Filled : Variant.Outlined" />
+
+            <MudTooltip Text="Auto accept when moving later in the pick order and auto reject otherwise.">
+                <MudChip Size="Size.Medium" Text="Down Only" OnClick="() => PickOrderTradeResponseChanged(TradeResponse.DownOnly)" Color="Color.Primary" Variant="_userSettings.PickOrderTradeResponse == TradeResponse.DownOnly ? Variant.Filled : Variant.Outlined" />
+            </MudTooltip>
+        </div>
+    </MudItem>
+</MudGrid>
+
+@code {
+    private UserSettings _userSettings;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _userSettings = await UserSettingsService.GetSettingsAsync();
+    }
+
+    private async Task PickOrderTradeResponseChanged(TradeResponse newValue)
+    {
+        if (_userSettings.PickOrderTradeResponse != newValue)
+        {
+            _userSettings.PickOrderTradeResponse = newValue;
+            await UserSettingsService.SaveSettingsAsync();
+        }
+    }
+}

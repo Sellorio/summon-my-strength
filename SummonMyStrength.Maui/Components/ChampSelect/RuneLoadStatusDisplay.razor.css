@@ -1,9 +1,0 @@
-﻿.rune-load-status {
-    position: relative;
-}
-
-.rune-load-status ::deep .mud-button {
-    position: absolute;
-    right: 20px;
-    top: 2px;
-}

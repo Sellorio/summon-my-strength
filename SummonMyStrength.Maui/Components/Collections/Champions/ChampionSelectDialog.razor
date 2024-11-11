@@ -1,0 +1,77 @@
+﻿@using SummonMyStrength.Api.Collections.Champions
+@using System.Text.RegularExpressions
+@inject IChampionService ChampionService
+
+<MudDialog>
+    <TitleContent>Champions</TitleContent>
+    <DialogContent>
+        <div class="filters">
+            <MudTextField T="string" Label="Search" Value="_searchText" ValueChanged="SearchTextChanged" AutoFocus Immediate />
+        </div>
+        <div class="champions">
+            @foreach (var c in _filteredChampions)
+            {
+                var champion = c;
+                <ChampionGridItem Champion="champion" OnClick="() => ChampionSelected(champion)" Selected="champion.Id == SelectedChampionId" />
+            }
+        </div>
+    </DialogContent>
+</MudDialog>
+
+@code {
+    private string _searchText;
+    private Champion[] _champions;
+    private Champion[] _filteredChampions;
+
+    [CascadingParameter]
+    public MudDialogInstance DialogInstance { get; set; }
+
+    [Parameter]
+    public int? SelectedChampionId { get; set; }
+
+    [Parameter]
+    public IList<int> ExcludedChampionIds { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        DialogInstance.SetOptions(new DialogOptions { CloseButton = true });
+
+        _champions = await ChampionService.GetChampionsAsync();
+
+        _filteredChampions =
+            ExcludedChampionIds != null
+                ? _champions.Where(x => !ExcludedChampionIds.Contains(x.Id)).ToArray()
+                : _champions;
+    }
+
+    private void ChampionSelected(Champion champion)
+    {
+        DialogInstance.Close(champion.Id);
+    }
+
+    private void SearchTextChanged(string newText)
+    {
+        _searchText = newText;
+
+        var asRegex = $".*{string.Join(string.Empty, _searchText?.Select(x => Regex.Escape(x.ToString()) + ".*"))}";
+
+        IEnumerable<Champion> newFilteredChampions =
+            ExcludedChampionIds != null
+                ? _champions.Where(x => !ExcludedChampionIds.Contains(x.Id))
+                : _champions;
+
+        newFilteredChampions = newFilteredChampions.Where(x => Regex.IsMatch(x.Name, asRegex, RegexOptions.IgnoreCase));
+
+        if (SelectedChampionId != null && !_filteredChampions.Any(x => x.Id == SelectedChampionId.Value))
+        {
+            var selectedChampion = _champions.FirstOrDefault(x => x.Id == SelectedChampionId.Value);
+
+            if (selectedChampion != null)
+            {
+                newFilteredChampions = newFilteredChampions.Append(selectedChampion);
+            }
+        }
+
+        _filteredChampions = newFilteredChampions.OrderBy(x => x.Name).ToArray();
+    }
+}

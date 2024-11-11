@@ -7,6 +7,7 @@ public interface IChampSelectSessionAbstractor
 {
     ChampSelectPhase Phase { get; }
     int? SelectedChampionId { get; }
+    ChampSelectAssignedPosition? Position { get; set; }
 
     event Func<ChampSelectPhase, ChampSelectPhase, Task> OnPhaseChanged;
     event Func<int?, int?, Task> OnSelectedChampionIdChanged;

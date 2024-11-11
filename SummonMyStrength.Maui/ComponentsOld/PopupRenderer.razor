@@ -1,0 +1,19 @@
+﻿@switch (Popup)
+{
+case Popup.None:
+    break;
+case Popup.Runes:
+    <SummonMyStrength.Maui.ComponentsOld.Runes.RunesPopup OnCloseClicked="() => PopupChanged.InvokeAsync(Popup = Popup.None)" />
+    break;
+case Popup.HandsFree:
+    <SummonMyStrength.Maui.ComponentsOld.HandsFree.HandsFreePopup OnCloseClicked="() => PopupChanged.InvokeAsync(Popup = Popup.None)" />
+    break;
+}
+
+@code {
+[Parameter]
+public Popup Popup { get; set; }
+
+[Parameter]
+public EventCallback<Popup> PopupChanged { get; set; }
+}

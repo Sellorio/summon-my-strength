@@ -1,0 +1,36 @@
+﻿@using SummonMyStrength.Api.Matchmaking
+@using System.Timers
+@using SummonMyStrength.Maui.Data
+@implements IDisposable
+@inject IUserSettingsService UserSettingsService
+@inject IReadyCheckService ReadyCheckService
+
+<ComponentSettings SectionName="Ready Check">
+    <ReadyCheckSettings />
+</ComponentSettings>
+
+<ReadyCheckPanel />
+
+@code {
+    private UserSettings _userSettings;
+
+    protected override async Task OnInitializedAsync()
+    {
+        ReadyCheckService.ReadyCheckUpdated += ReadyCheckUpdated;
+
+        _userSettings = await UserSettingsService.GetSettingsAsync();
+    }
+
+    public void Dispose()
+    {
+        ReadyCheckService.ReadyCheckUpdated -= ReadyCheckUpdated;
+    }
+
+    private async Task ReadyCheckUpdated(ReadyCheck readyCheck)
+    {
+        if (_userSettings.AutoAcceptReadyChecks && readyCheck.Timer >= 2.0f)
+        {
+            await ReadyCheckService.AcceptReadyCheckAsync();
+        }
+    }
+}

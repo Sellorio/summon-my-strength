@@ -1,0 +1,44 @@
+﻿@using SummonMyStrength.Maui.Data
+@using SummonMyStrength.Maui.Services
+@implements IDisposable
+@inject IPostGameStatsService PostGameStatsService
+@inject IUserSettingsService UserSettingsService
+
+@if (PostGameStatsService.PostGameStats != null && _userSettings.PostGameGraphStatIds != null && _userSettings.PostGameGraphStatIds.Count > 0)
+{
+    <div class="post-game-stats">
+        <MudText Typo="Typo.h6">Game Stats</MudText>
+
+        @foreach (var statId in _userSettings.PostGameGraphStatIds)
+        {
+            var statReader = PostGameStatsService.StatReaders.FirstOrDefault(x => x.Value.Key == statId);
+
+            if (statReader != null)
+            {
+                <PostGameStatGraph LocalSummonerName="@PostGameStatsService.PostGameStats.LocalPlayer.SummonerName"
+                                       StatReader="statReader.Value"
+                                       Stats="PostGameStatsService.PostGameStats" />
+            }
+        }
+    </div>
+}
+
+@code {
+    private UserSettings _userSettings;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _userSettings = await UserSettingsService.GetSettingsAsync();
+        PostGameStatsService.PostGameStatsChanged += OnPostGameStatsChanged;
+    }
+
+    public void Dispose()
+    {
+        PostGameStatsService.PostGameStatsChanged -= OnPostGameStatsChanged;
+    }
+
+    private async Task OnPostGameStatsChanged()
+    {
+        await InvokeAsync(StateHasChanged);
+    }
+}

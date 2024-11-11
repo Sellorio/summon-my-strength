@@ -1,0 +1,235 @@
+﻿@using SummonMyStrength.Api.ChampSelect
+@using SummonMyStrength.Maui.Data
+@using SummonMyStrength.Maui.Services
+@using SummonMyStrength.Maui.Services.ChampSelect
+@implements IDisposable
+@inject IChampSelectSessionAbstractor ChampSelectSessionAbstractor
+@inject IChampSelectSessionService ChampSelectSessionService
+@inject IUserSettingsService UserSettingsService
+@inject IChampSelectActionService ChampSelectActionService
+
+<ComponentSettings SectionName="Pick/Ban">
+    <PickBanSettings />
+</ComponentSettings>
+
+@if (_session != null)
+{
+    <PickBanPositionButtons SelectedPosition="ChampSelectSessionAbstractor.Position" OnPositionSelected="SetPositionAsync" />
+}
+
+@code {
+    private Timer _timer;
+    private UserSettings _userSettings;
+    private ChampSelectSession _session;
+    private bool _lockIn;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _userSettings = await UserSettingsService.GetSettingsAsync();
+
+        _timer =
+            new Timer(
+                _ => Task.Run(
+                    async () =>
+                    {
+                        _lockIn = true;
+                        await ProcessHandsFreeActionsAsync(false, true);
+                    }),
+                    null,
+                    Timeout.Infinite,
+                    Timeout.Infinite);
+
+        ChampSelectSessionService.ChampSelectSessionCreated += ChampSelectSessionUpdated;
+        ChampSelectSessionService.ChampSelectSessionUpdated += ChampSelectSessionUpdated;
+        ChampSelectSessionService.ChampSelectSessionDeleted += ChampSelectSessionDeleted;
+        ChampSelectSessionAbstractor.OnPhaseChanged += ChampSelectPhaseChanged;
+    }
+
+    public void Dispose()
+    {
+        ChampSelectSessionService.ChampSelectSessionCreated -= ChampSelectSessionUpdated;
+        ChampSelectSessionService.ChampSelectSessionUpdated -= ChampSelectSessionUpdated;
+        ChampSelectSessionService.ChampSelectSessionDeleted -= ChampSelectSessionDeleted;
+        ChampSelectSessionAbstractor.OnPhaseChanged -= ChampSelectPhaseChanged;
+    }
+
+    private async Task ChampSelectSessionUpdated(ChampSelectSession session)
+    {
+        _session = session;
+        await ChampSelectSessionAbstractor.ApplyChangesAsync(session);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task ChampSelectSessionDeleted(ChampSelectSession session)
+    {
+        _session = null;
+        _lockIn = false;
+        await ChampSelectSessionAbstractor.ApplyChangesAsync(null);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task SetPositionAsync(ChampSelectAssignedPosition position)
+    {
+        ChampSelectSessionAbstractor.Position = position;
+        await ProcessHandsFreeActionsAsync(true, _lockIn);
+    }
+
+    private async Task ChampSelectPhaseChanged(ChampSelectPhase oldPhase, ChampSelectPhase newPhase)
+    {
+        _timer.Change(Timeout.Infinite, Timeout.Infinite);
+
+        _lockIn = false;
+
+        switch (newPhase)
+        {
+            case ChampSelectPhase.PickIntent:
+                await ProcessHandsFreeActionsAsync(false, false);
+                break;
+            case ChampSelectPhase.WaitingToBan:
+                await ProcessHandsFreeActionsAsync(false, false);
+                break;
+            case ChampSelectPhase.Banning:
+                await ProcessHandsFreeActionsAsync(false, false);
+                _timer.Change(5000, 1000);
+                break;
+            case ChampSelectPhase.WaitingToPick:
+                await ProcessHandsFreeActionsAsync(false, false);
+                break;
+            case ChampSelectPhase.Picking:
+                _timer.Change(5000, 1000);
+                break;
+            default:
+                break;
+        }
+    }
+
+    private async Task ProcessHandsFreeActionsAsync(bool overrideSelectedChampionForPick, bool lockIn)
+    {
+        if (!_userSettings.AutoPickBanChampions || ChampSelectSessionAbstractor.Position == null)
+        {
+            return;
+        }
+
+        if (_lockIn)
+        {
+            _timer.Change(Timeout.Infinite, Timeout.Infinite);
+        }
+
+        if (_session == null)
+        {
+            return;
+        }
+
+        switch (ChampSelectSessionAbstractor.Phase)
+        {
+            case ChampSelectPhase.PickIntent:
+                await PickChampionFromPreferencesAsync(overrideSelectedChampionForPick, lockIn);
+                break;
+            case ChampSelectPhase.WaitingToBan:
+            case ChampSelectPhase.Banning:
+                await BanChampionFromPreferencesAsync(lockIn);
+                break;
+            case ChampSelectPhase.WaitingToPick:
+            case ChampSelectPhase.Picking:
+                await PickChampionFromPreferencesAsync(overrideSelectedChampionForPick, lockIn);
+                break;
+        }
+    }
+
+    private async Task BanChampionFromPreferencesAsync(bool lockIn)
+    {
+        var banAction = _session.Actions.SelectMany(x => x).FirstOrDefault(x => x.ActorCellId == _session.LocalPlayerCellId && x.Type == ActionType.Ban);
+
+        if (banAction != null && banAction.ChampionId != null && banAction.ChampionId != 0)
+        {
+            await BanChampionAsync(banAction.ChampionId.Value, lockIn);
+            return;
+        }
+
+        if (ChampSelectSessionAbstractor.SelectedChampionId == null)
+        {
+            return;
+        }
+
+        var preferences = _userSettings.ChampionPreferences[ChampSelectSessionAbstractor.Position.Value];
+        var selectedPreference = preferences.FirstOrDefault(x => x.ChampionId == ChampSelectSessionAbstractor.SelectedChampionId);
+
+        if (selectedPreference != null)
+        {
+            var firstAvailableBanId = selectedPreference.BanChampionIds.FirstOrDefault(x => !IsChampionDisbled(true, x));
+
+            if (firstAvailableBanId != default)
+            {
+                await BanChampionAsync(firstAvailableBanId, lockIn);
+            }
+        }
+    }
+
+    private async Task PickChampionFromPreferencesAsync(bool overrideSelectedChampionForPick, bool lockIn)
+    {
+        int championId;
+
+        if (!overrideSelectedChampionForPick && ChampSelectSessionAbstractor.SelectedChampionId != null)
+        {
+            championId = ChampSelectSessionAbstractor.SelectedChampionId.Value;
+        }
+        else
+        {
+            var preferences = _userSettings.ChampionPreferences[ChampSelectSessionAbstractor.Position.Value];
+            var firstAvailablePreference = preferences.FirstOrDefault(x => !IsChampionDisbled(false, x.ChampionId));
+
+            if (firstAvailablePreference == null)
+            {
+                return;
+            }
+
+            championId = firstAvailablePreference.ChampionId;
+        }
+
+        await PickChampionAsync(championId, lockIn);
+    }
+
+    private async Task PickChampionAsync(int championId, bool lockIn)
+    {
+        var action = _session.Actions.SelectMany(x => x).FirstOrDefault(x => x.Type == ActionType.Pick && x.ActorCellId == _session.LocalPlayerCellId);
+
+        if (action == null)
+        {
+            return;
+        }
+
+        await ChampSelectActionService.PatchActionAsync(action.Id.Value, new ChampSelectAction { ChampionId = championId, Completed = action.IsInProgress == true && lockIn });
+    }
+
+    private async Task BanChampionAsync(int championId, bool lockIn)
+    {
+        var action = _session.Actions.SelectMany(x => x).FirstOrDefault(x => x.Type == ActionType.Ban && x.ActorCellId == _session.LocalPlayerCellId);
+
+        if (action == null)
+        {
+            return;
+        }
+
+        await ChampSelectActionService.PatchActionAsync(action.Id.Value, new ChampSelectAction { ChampionId = championId, Completed = lockIn });
+    }
+
+    private bool IsChampionDisbled(bool isBanning, int championId)
+    {
+        if (isBanning)
+        {
+            return
+                _session.Actions.SelectMany(x => x).Any(x => x.Type == ActionType.Ban && x.ChampionId == championId && x.ActorCellId != _session.LocalPlayerCellId) ||
+                _session.MyTeam.Any(x => x.ChampionPickIntent == championId);
+
+        }
+        else
+        {
+            return
+                _session.Actions.SelectMany(x => x).Any(x =>
+                    x.Type == ActionType.Ban && x.ChampionId == championId ||
+                    x.ActorCellId == _session.LocalPlayerCellId && x.Type == ActionType.Pick && x.Completed == true) ||
+                _session.MyTeam.Any(x => x.CellId != _session.LocalPlayerCellId && x.ChampionId == championId) ||
+                _session.TheirTeam.Any(x => x.ChampionId == championId);
+        }
+    }
+}

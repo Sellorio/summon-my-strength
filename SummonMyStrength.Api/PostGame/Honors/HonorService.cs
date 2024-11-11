@@ -18,10 +18,12 @@ internal class HonorService : IHonorService, IDisposable
     private readonly ILeagueClientWebSocketConnector _leagueClientWebSocketConnector;
     private readonly ILeagueClientApiConnector _leagueClientApiConnector;
 
-    private DateTime? _ballotCreated;
+    private string _postGameSequenceStage;
+    private HonorBallot _honorBallot;
+    private DateTime? _startedHonorPhase;
     private DateTime? _lastSentHonorRequest;
 
-    public event Func<HonorBallot, Task> HonorBallotCreated;
+    public event Func<HonorBallot, Task> HonorPhaseStarted;
     public event Func<HonorBallot, Task> HonorBallotUpdated;
 
     public HonorService(ILeagueClientWebSocketConnector leagueClientWebSocketConnector, ILeagueClientApiConnector leagueClientApiConnector)
@@ -29,21 +31,48 @@ internal class HonorService : IHonorService, IDisposable
         _leagueClientWebSocketConnector = leagueClientWebSocketConnector;
         _leagueClientApiConnector = leagueClientApiConnector;
 
+        _leagueClientWebSocketConnector.AddMessageHandler<PreEndOfGameSequenceMessageBody>(
+            this,
+            MessageId.PreEndOfGameSequenceEvent,
+            MessageAction.Create | MessageAction.Update,
+            async msg =>
+            {
+                _postGameSequenceStage = msg.Name;
+
+                if (_postGameSequenceStage == "honor-vote" && _honorBallot != null)
+                {
+                    _startedHonorPhase = DateTime.UtcNow;
+                    await HonorPhaseStarted.Invoke(_honorBallot);
+                }
+            });
+
         _leagueClientWebSocketConnector.AddMessageHandler<HonorBallot>(
             this,
             MessageId.HonorBallot,
             MessageAction.Create,
-            async x =>
+            async newHonorBallot =>
             {
-                _ballotCreated = DateTime.UtcNow;
-                await HonorBallotCreated.InvokeAsync(x);
+                _honorBallot = newHonorBallot;
+
+                if (_postGameSequenceStage == "honor-vote" && _honorBallot != null)
+                {
+                    _startedHonorPhase = DateTime.UtcNow;
+                    await HonorPhaseStarted.InvokeAsync(newHonorBallot);
+                }
             });
 
         _leagueClientWebSocketConnector.AddMessageHandler<HonorBallot>(
             this,
             MessageId.HonorBallot,
             MessageAction.Update,
-            x => HonorBallotUpdated.InvokeAsync(x));
+            async updatedHonorBallot =>
+            {
+                if (_postGameSequenceStage == "honor-vote" && _honorBallot != null)
+                {
+                    _honorBallot = updatedHonorBallot;
+                    await HonorBallotUpdated.InvokeAsync(updatedHonorBallot);
+                }
+            });
 
         _leagueClientWebSocketConnector.AddMessageHandler<HonorBallot>(
             this,
@@ -51,26 +80,29 @@ internal class HonorService : IHonorService, IDisposable
             MessageAction.Delete,
             x =>
             {
-                _ballotCreated = null;
+                _honorBallot = null;
+                _startedHonorPhase = null;
                 return Task.CompletedTask;
             });
     }
 
     public async Task HonorPlayerAsync(PlayerHonor honor)
     {
-        if (_ballotCreated != null)
+        if (_startedHonorPhase == null)
         {
-            var delta = (int)(DateTime.UtcNow - _ballotCreated.Value).TotalMilliseconds;
+            return;
+        }
 
-            if (delta < HonorBallotCreateHonorCooldown)
-            {
-                await Task.Delay(HonorBallotCreateHonorCooldown - delta);
-            }
+        var delta = (int)(DateTime.UtcNow - _startedHonorPhase.Value).TotalMilliseconds;
+
+        if (delta < HonorBallotCreateHonorCooldown)
+        {
+            await Task.Delay(HonorBallotCreateHonorCooldown - delta);
         }
 
         if (_lastSentHonorRequest != null)
         {
-            var delta = (int)(DateTime.UtcNow - _lastSentHonorRequest.Value).TotalMilliseconds;
+            delta = (int)(DateTime.UtcNow - _lastSentHonorRequest.Value).TotalMilliseconds;
 
             if (delta < HonorPlayerCooldownMilliseconds)
             {

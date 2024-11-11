@@ -1,0 +1,141 @@
+﻿@using SummonMyStrength.Api.Collections.Champions
+@using SummonMyStrength.Maui.Components.Collections.Champions
+@using SummonMyStrength.Maui.ComponentsOld.Common.DragDrop
+@using SummonMyStrength.Maui.Data
+@inject IDialogService DialogService
+@inject IChampionService ChampionService
+@inject IUserSettingsService UserSettingsService
+
+@if (_champions != null)
+{
+    <div class="champion-preferences">
+        <MudList Dense>
+            <MudListItem>
+                <div class="champion-preference header">
+                    <MudGrid>
+                        <MudItem Class="order"></MudItem>
+                        <MudItem Class="pick">Pick</MudItem>
+                        <MudItem Class="bans">Ban Preferences</MudItem>
+                    </MudGrid>
+                </div>
+            </MudListItem>
+
+            @{
+                var i = 0;
+            }
+
+            @foreach (var p in Preferences)
+            {
+                var preference = p;
+                var index = i;
+                var champion = _champions.First(x => x.Id == preference.ChampionId);
+
+                <Draggable T="ChampionPreference" GroupKey="Preferences" Key="preference" OnDragCompleted="() => Preferences.Remove(preference)" OnInsertDrop="x => Preferences.Insert(index, x)">
+                    <MudListItem>
+                        <div class="champion-preference">
+                            <MudGrid>
+                                <MudItem Class="order">
+                                    @(index + 1)
+                                </MudItem>
+                                <MudItem Class="pick">
+                                    <img class="champion-icon pick-icon" alt="@champion.Name" src="@ChampionService.GetIconUrl(champion)">
+                                </MudItem>
+                                <MudItem Class="bans">
+                                    @foreach (var banId in preference.BanChampionIds)
+                                    {
+                                        var bannedChampion = _champions.First(x => x.Id == banId);
+
+                                        <button class="remove-ban" @onclick="() => RemoveBanAsync(preference, bannedChampion.Id)">
+                                            <img class="champion-icon ban-icon" alt="@bannedChampion.Name" src="@ChampionService.GetIconUrl(bannedChampion)">
+                                            <MudIcon Class="remove-icon" Icon="@Icons.Material.Outlined.Close" />
+                                        </button>
+                                    }
+
+                                    @if (preference.BanChampionIds.Count < 3)
+                                    {
+                                        <button class="add-ban" @onclick="() => AddBanAsync(preference)">
+                                            <MudIcon Class="add-icon" Icon="@Icons.Material.Outlined.Add" />
+                                        </button>
+                                    }
+                                </MudItem>
+                                <MudItem Class="actions">
+                                    <MudIconButton Icon="@Icons.Material.Outlined.Close" OnClick="() => RemovePickAsync(preference)" />
+                                </MudItem>
+                            </MudGrid>
+                        </div>
+                    </MudListItem>
+                </Draggable>
+
+                i++;
+            }
+
+            <DragDropsite T="ChampionPreference" GroupKey="Preferences" OnDrop="x => Preferences.Add(x)" />
+
+            <MudListItem>
+                <button class="add-pick" @onclick="AddPickAsync">
+                    <MudIcon Icon="@Icons.Material.Outlined.Add" />
+                </button>
+            </MudListItem>
+        </MudList>
+    </div>
+}
+
+@code {
+    private Champion[] _champions;
+
+    [Parameter]
+    public List<ChampionPreference> Preferences { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _champions = await ChampionService.GetChampionsAsync();
+    }
+
+    private async Task AddPickAsync()
+    {
+        var existingChampionIds = Preferences.Select(x => x.ChampionId).ToArray();
+
+        var dialogParameters = new DialogParameters<ChampionSelectDialog>();
+        dialogParameters.Add(x => x.ExcludedChampionIds, existingChampionIds);
+        var dialogReference = await DialogService.ShowAsync<ChampionSelectDialog>(null, dialogParameters);
+        var dialogResult = await dialogReference.Result;
+
+        if (dialogResult.Canceled)
+        {
+            return;
+        }
+
+        Preferences.Add(new() { ChampionId = (int)dialogResult.Data, BanChampionIds = [] });
+        await UserSettingsService.SaveSettingsAsync();
+    }
+
+    private async Task RemovePickAsync(ChampionPreference championPreference)
+    {
+        Preferences.Remove(championPreference);
+        await UserSettingsService.SaveSettingsAsync();
+    }
+
+    private async Task RemoveBanAsync(ChampionPreference championPreference, int bannedChampionId)
+    {
+        championPreference.BanChampionIds.Remove(bannedChampionId);
+        await UserSettingsService.SaveSettingsAsync();
+    }
+
+    private async Task AddBanAsync(ChampionPreference championPreference)
+    {
+        var existingChampionIds = championPreference.BanChampionIds;
+
+        var dialogParameters = new DialogParameters<ChampionSelectDialog>();
+        dialogParameters.Add(x => x.ExcludedChampionIds, existingChampionIds);
+        var dialogReference = await DialogService.ShowAsync<ChampionSelectDialog>(null, dialogParameters);
+        var dialogResult = await dialogReference.Result;
+
+        if (dialogResult.Canceled)
+        {
+            return;
+        }
+
+        championPreference.BanChampionIds.Add((int)dialogResult.Data);
+        await UserSettingsService.SaveSettingsAsync();
+    }
+}

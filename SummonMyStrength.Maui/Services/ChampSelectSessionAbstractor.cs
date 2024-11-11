@@ -1,6 +1,7 @@
 ﻿using SummonMyStrength.Api;
 using SummonMyStrength.Api.ChampSelect;
 using SummonMyStrength.Maui.Services.ChampSelect;
+using System.Runtime.InteropServices;
 
 namespace SummonMyStrength.Maui.Services;
 
@@ -12,6 +13,7 @@ internal class ChampSelectSessionAbstractor : IChampSelectSessionAbstractor
 
     public ChampSelectPhase Phase { get; private set; }
     public int? SelectedChampionId { get; private set; }
+    public ChampSelectAssignedPosition? Position { get; set; }
 
     public async Task ApplyChangesAsync(ChampSelectSession session)
     {
@@ -19,8 +21,11 @@ internal class ChampSelectSessionAbstractor : IChampSelectSessionAbstractor
         {
             Phase = ChampSelectPhase.None;
             SelectedChampionId = null;
+            Position = null;
             return;
         }
+        
+        Position ??= session.Player.Position;
 
         var phase = GetChampSelectPhase(session);
 

@@ -1,7 +1,16 @@
-﻿.main-content {
+﻿.hidden {
+    display: none;
+}
+
+.main-content {
     position: relative;
     height: calc(100% - var(--mud-appbar-height) + var(--mud-appbar-height)/8);
     max-height: calc(100% - var(--mud-appbar-height) + var(--mud-appbar-height)/8);
+    overflow: auto;
+}
+
+.features {
+    padding-top: 15px;
 }
 
 @media(min-width: 600px) {

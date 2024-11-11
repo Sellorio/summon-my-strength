@@ -1,0 +1,120 @@
+﻿@using SummonMyStrength.Api.Collections.Champions
+@using SummonMyStrength.Maui.Components.Collections.Champions
+@using SummonMyStrength.Maui.Data
+@inject IChampionService ChampionService
+@inject IUserSettingsService UserSettingsService
+
+@if (_champion != null)
+{
+    <MudExpansionPanel Dense>
+        <TitleContent>
+            <div class="champion-header">
+                <img alt="@_champion.Name" src="@ChampionService.GetIconUrl(_champion)">
+                <div>@_champion.Name</div>
+                <MudIconButton Icon="@Icons.Material.Outlined.Close" OnClick="OnDeleteRequested" />
+            </div>
+        </TitleContent>
+        <ChildContent>
+            <div class="champion-body">
+                @{
+                    var nonDefaultPositions = Preferences.Where(x => x.Key != AssignedPositionOrDefault.Default).ToList();
+                    var missingPositions = Enum.GetValues<AssignedPositionOrDefault>().Except(Preferences.Keys.ToArray()).ToList();
+                }
+
+                @if (nonDefaultPositions.Count != 0)
+                {
+                    foreach (var position in nonDefaultPositions)
+                    {
+                        var assignedPosition = position.Key;
+
+                        <SummonerSpellSettingsPreferenceRow ChampionId="_champion.Id"
+                                                            Position="position.Key"
+                                                            SummonerSpell1="position.Value.Spell1"
+                                                            SummonerSpell2="position.Value.Spell2"
+                                                            OnDeleteRequested="() => DeletePositionAsync(assignedPosition)" />
+                    }
+                }
+
+                @if (missingPositions.Count > 0)
+                {
+                    <div class="add-position-tray">
+                        @foreach (var p in missingPositions)
+                        {
+                            var position = p;
+                            <SummonerSpellSettingsAddRoleButton Position="position" OnClick="() => AddPositionAsync(position)" />
+                        }
+                    </div>
+                }
+
+                <hr>
+
+                <SummonerSpellSettingsPreferenceRow ChampionId="_champion.Id"
+                                                    Position="AssignedPositionOrDefault.Default"
+                                                    SummonerSpell1="Preferences[AssignedPositionOrDefault.Default].Spell1"
+                                                    SummonerSpell2="Preferences[AssignedPositionOrDefault.Default].Spell2" />
+            </div>
+        </ChildContent>
+    </MudExpansionPanel>
+}
+
+@code {
+    private static readonly Dictionary<AssignedPositionOrDefault, int> _defaultSpell1 = new()
+    {
+        { AssignedPositionOrDefault.Top, 4 /* Flash */ },
+        { AssignedPositionOrDefault.Jungle, 4 /* Flash */ },
+        { AssignedPositionOrDefault.Middle, 4 /* Flash */ },
+        { AssignedPositionOrDefault.Bottom, 4 /* Flash */ },
+        { AssignedPositionOrDefault.Support, 4 /* Flash */ },
+        { AssignedPositionOrDefault.Default, 4 /* Flash */ }
+    };
+
+    private static readonly Dictionary<AssignedPositionOrDefault, int> _defaultSpell2 = new()
+    {
+        { AssignedPositionOrDefault.Top, 12 /* Teleport */ },
+        { AssignedPositionOrDefault.Jungle, 11 /* Smite */ },
+        { AssignedPositionOrDefault.Middle, 14 /* Ignite */ },
+        { AssignedPositionOrDefault.Bottom, 21 /* Barrier */ },
+        { AssignedPositionOrDefault.Support, 3 /* Exhaust */ },
+        { AssignedPositionOrDefault.Default, 14 /* Ignite */ }
+    };
+
+    private Champion[] _champions;
+    private Champion _champion;
+
+    [Parameter]
+    public int ChampionId { get; set; }
+
+    [Parameter]
+    public Dictionary<AssignedPositionOrDefault, SummonerSpellPreferences> Preferences { get; set; }
+
+    [Parameter]
+    public EventCallback OnDeleteRequested { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _champions = await ChampionService.GetChampionsAsync();
+        _champion = _champions.FirstOrDefault(x => x.Id == ChampionId);
+    }
+
+    public override async Task SetParametersAsync(ParameterView parameters)
+    {
+        await base.SetParametersAsync(parameters);
+
+        if (_champions != null && (_champion == null || _champion.Id != ChampionId))
+        {
+            _champion = _champions.FirstOrDefault(x => x.Id == ChampionId);
+        }
+    }
+
+    private async Task AddPositionAsync(AssignedPositionOrDefault position)
+    {
+        Preferences.Add(position, new() { Spell1 = _defaultSpell1[position], Spell2 = _defaultSpell2[position] });
+        await UserSettingsService.SaveSettingsAsync();
+    }
+
+    private async Task DeletePositionAsync(AssignedPositionOrDefault position)
+    {
+        Preferences.Remove(position);
+        await UserSettingsService.SaveSettingsAsync();
+    }
+}

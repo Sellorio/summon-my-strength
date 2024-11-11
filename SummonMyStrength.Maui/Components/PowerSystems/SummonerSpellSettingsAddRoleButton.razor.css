@@ -1,0 +1,23 @@
+.add-role {
+    display: inline-flex;
+    align-items: center;
+    margin-top: 6px;
+    padding: 3px 4px 3px 7px;
+    border: 2px solid rgba(119, 170, 255, 0.6);
+    border-radius: 30px;
+    color: #7AF;
+    transition: background .1s linear;
+}
+
+.add-role:hover {
+    background: rgba(119, 170, 255, 0.1);
+}
+
+.add-role + .add-role {
+    margin-left: 10px;
+}
+
+.add-role img {
+    width: 25px;
+    height: 25px;
+}

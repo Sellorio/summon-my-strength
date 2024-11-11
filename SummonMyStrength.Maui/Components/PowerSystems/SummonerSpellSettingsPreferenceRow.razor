@@ -1,0 +1,116 @@
+﻿@using SummonMyStrength.Api.PowerSystems.SummonerSpells
+@using SummonMyStrength.Maui.Data
+@inject ISummonerSpellService SummonerSpellService
+@inject IDialogService DialogService
+@inject IUserSettingsService UserSettingsService
+
+<div class="preference-row">
+    <MudGrid Style="align-items:center">
+        <MudItem Class="position">
+            @if (Position != AssignedPositionOrDefault.Default)
+            {
+                <img class="position-icon" alt="@Position" src="@($"img/positions/icon-position-{Position.ToString().ToLower()}-blue.png")">
+            }
+            else
+            {
+                @("Default")
+            }
+        </MudItem>
+        <MudItem Class="spells">
+            @{
+                var spell1 = _summonerSpells.First(x => x.Id == SummonerSpell1);
+                var spell2 = _summonerSpells.First(x => x.Id == SummonerSpell2);
+            }
+
+            <div class="spell-icons">
+                <img class="spell-icon spell-icon-1" alt="@spell1.Name" src="@SummonerSpellService.GetIconUrl(spell1)" @onclick="ChangeSpell1Async">
+                <img class="spell-icon spell-icon-2" alt="@spell2.Name" src="@SummonerSpellService.GetIconUrl(spell2)" @onclick="ChangeSpell2Async">
+            </div>
+        </MudItem>
+        <MudItem Class="actions">
+            @if (Position != AssignedPositionOrDefault.Default)
+            {
+                <MudIconButton Icon="@Icons.Material.Outlined.Delete" OnClick="OnDeleteRequested" />
+            }
+        </MudItem>
+    </MudGrid>
+</div>
+
+@code {
+    private UserSettings _userSettings;
+    private SummonerSpell[] _summonerSpells;
+
+    [Parameter]
+    public int ChampionId { get; set; }
+
+    [Parameter]
+    public AssignedPositionOrDefault Position { get; set; }
+
+    [Parameter]
+    public int SummonerSpell1 { get; set; }
+
+    [Parameter]
+    public int SummonerSpell2 { get; set; }
+
+    [Parameter]
+    public EventCallback OnDeleteRequested { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _summonerSpells = await SummonerSpellService.GetSummonerSpellsAsync();
+        _userSettings = await UserSettingsService.GetSettingsAsync();
+    }
+
+    private async Task ChangeSpell1Async()
+    {
+        var newSpellId = await ShowSpellSelectionAsync(SummonerSpell1);
+
+        if (newSpellId != null && newSpellId != SummonerSpell1)
+        {
+            if (SummonerSpell2 == newSpellId)
+            {
+                SummonerSpell2 = SummonerSpell1;
+                _userSettings.SummonerSpellPreferences[ChampionId][Position].Spell2 = SummonerSpell1;
+            }
+
+            SummonerSpell1 = newSpellId.Value;
+            _userSettings.SummonerSpellPreferences[ChampionId][Position].Spell1 = SummonerSpell1;
+
+            await UserSettingsService.SaveSettingsAsync();
+        }
+    }
+
+    private async Task ChangeSpell2Async()
+    {
+        var newSpellId = await ShowSpellSelectionAsync(SummonerSpell2);
+
+        if (newSpellId != null && newSpellId != SummonerSpell2)
+        {
+            if (SummonerSpell1 == newSpellId)
+            {
+                SummonerSpell1 = SummonerSpell2;
+                _userSettings.SummonerSpellPreferences[ChampionId][Position].Spell1 = SummonerSpell2;
+            }
+
+            SummonerSpell2 = newSpellId.Value;
+            _userSettings.SummonerSpellPreferences[ChampionId][Position].Spell2 = SummonerSpell2;
+            await UserSettingsService.SaveSettingsAsync();
+        }
+    }
+
+    private async Task<int?> ShowSpellSelectionAsync(int selectedSpell)
+    {
+        var parameters = new DialogParameters<SummonerSpellSettingsSpellSelectionDialog>();
+        parameters.Add(x => x.SelectedSpellId, selectedSpell);
+
+        var dialog = await DialogService.ShowAsync<SummonerSpellSettingsSpellSelectionDialog>(null, parameters);
+        var result = await dialog.Result;
+
+        if (result.Canceled)
+        {
+            return null;
+        }
+
+        return (int)result.Data;
+    }
+}

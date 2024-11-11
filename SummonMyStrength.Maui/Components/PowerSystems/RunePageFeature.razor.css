@@ -1,0 +1,9 @@
+.runes-loaded-for-text {
+    margin: 10px;
+    font-size: 18px;
+    text-align: center;
+}
+
+.runes-loaded-for-text .champion-name {
+    color: #7AF;
+}

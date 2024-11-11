@@ -1,77 +1,41 @@
 ﻿@page "/"
-@implements IDisposable
-@    using SummonMyStrength.Api.Gameflow
-@    using SummonMyStrength.Maui.Components
-@    using SummonMyStrength.Maui.Components.Honors
-@    using SummonMyStrength.Maui.Components.Main
-@    using SummonMyStrength.Maui.Components.ReadyCheck
-@    using SummonMyStrength.Maui.Components.ChampSelect
-@    using SummonMyStrength.Maui.Components.InGame
-@    using SummonMyStrength.Maui.Services
-@    using SummonMyStrength.Maui.Components.PostGame
-@inject SummonMyStrength.Api.LeagueClient LeagueClient
-@inject IPostGameStatsService PostGameStatsService
+@using SummonMyStrength.Api.Connectors
+@using SummonMyStrength.Api.General
+@using SummonMyStrength.Maui.ComponentsOld
+@using SummonMyStrength.Maui.Services
+@using SummonMyStrength.Maui.ComponentsOld.PostGame
+@inject ILeagueClientWebSocketConnector LeagueClientWebSocketConnector
+@inject ILeagueClientApiConnector LeagueClientApiConnector
 
-<MudDrawerContainer Class="mud-height-full" Style="overflow: hidden">
-    <Sidebar @bind-Expanded="_expandSidebar" OnOpenRunes="() => _popup = Popup.Runes" OnOpenHandsFree="() => _popup = Popup.HandsFree" />
-    <StatusBar OnToggleSidebar="() => _expandSidebar = !_expandSidebar" />
-    <div class="main-content">
-        @switch (_currentPhase)
-    {
-        case GameflowPhase.ReadyCheck:
-            <ReadyCheckPanel />
-            break;
-        case GameflowPhase.ChampSelect:
-            <ChampSelectPanel />
-            break;
-        case GameflowPhase.InProgress:
-            <InGamePanel />
-            break;
-        default:
-            if (PostGameStatsService.PostGameStats != null)
-            {
-                <PostGameStatsPanel />
-            }
-            else
-            {
-                <IdlePanel />
-            }
-            break;
-    }
+<SummonMyStrength.Maui.ComponentsOld.Main.StatusBar @bind-ShowSettings="_showSettings" />
 
-        <PopupRenderer @bind-Popup="_popup" />
+<div class="main-content">
+    <div class="features @(_showSettings ? "hidden" : "")">
+        <SummonMyStrength.Maui.Components.PowerSystems.RunePageFeature />
+        <SummonMyStrength.Maui.Components.PowerSystems.SummonerSpellFeature />
+        <SummonMyStrength.Maui.Components.Matchmaking.ReadyCheckFeature />
+        <SummonMyStrength.Maui.Components.ChampSelect.PickBanFeature />
     </div>
-</MudDrawerContainer>
+
+    @if (_showSettings)
+    {
+        <SummonMyStrength.Maui.ComponentsOld.Main.ComponentSettingsEditor />
+    }
+</div>
 
 @code {
-private bool _expandSidebar;
-private Popup _popup;
-private GameflowPhase? _currentPhase;
+    private bool _showSettings;
 
-[Inject]
-public IJSRuntime JS { get; set; }
+    private GameflowPhase? _currentPhase;
 
-protected override async Task OnInitializedAsync()
-{
-    LeagueClient.Gameflow.GameflowPhaseChanged += GameflowPhaseChanged;
-    PostGameStatsService.PostGameStatsChanged += OnPostGameStatsChanged;
-    await LeagueClient.ConnectAsync();
-}
+    [Inject]
+    public IJSRuntime JS { get; set; }
 
-public void Dispose()
-{
-    LeagueClient.Gameflow.GameflowPhaseChanged -= GameflowPhaseChanged;
-    PostGameStatsService.PostGameStatsChanged -= OnPostGameStatsChanged;
-}
-
-private async Task GameflowPhaseChanged(GameflowPhase newPhase)
-{
-    _currentPhase = newPhase;
-    await InvokeAsync(StateHasChanged);
-}
-
-private async Task OnPostGameStatsChanged()
-{
-    await InvokeAsync(StateHasChanged);
-}
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await LeagueClientWebSocketConnector.WaitForConnectionAsync();
+        }
+    }
 }

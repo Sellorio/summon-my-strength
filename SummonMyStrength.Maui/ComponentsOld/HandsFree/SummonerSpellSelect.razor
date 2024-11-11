@@ -1,0 +1,62 @@
+﻿@using SummonMyStrength.Api
+@using SummonMyStrength.Api.PowerSystems.SummonerSpells
+@inject ISummonerSpellService SummonerSpellService
+
+<button @onclick="() => _isExpanded = !_isExpanded">
+    <img class="spell-icon" src="@SummonerSpellService.GetIconUrl(SelectedSpell)">
+</button>
+
+@if (_isExpanded)
+{
+    <div class="underlay" @onclick="() => _isExpanded = false"></div>
+    <div class="spell-select">
+        <MudGrid Spacing="1">
+            @foreach (var s in Spells)
+        {
+            var spell = s;
+
+            <MudItem>
+                    <button @onclick="() => SelectSpellAsync(spell)">
+                        <img class="spell-icon" src="@SummonerSpellService.GetIconUrl(spell)">
+                    </button>
+                </MudItem>
+        }
+        </MudGrid>
+    </div>
+}
+
+@code {
+private bool _isExpanded;
+
+[Parameter]
+public ICollection<SummonerSpell> Spells { get; set; }
+
+[Parameter]
+public SummonerSpell SelectedSpell { get; set; }
+
+[Parameter]
+public EventCallback<SummonerSpell> SelectedSpellChanged { get; set; }
+
+[Parameter]
+public SummonerSpell OtherSpell { get; set; }
+
+[Parameter]
+public EventCallback<SummonerSpell> OtherSpellChanged { get; set; }
+
+public async Task SelectSpellAsync(SummonerSpell newSpell)
+{
+    _isExpanded = false;
+
+    if (newSpell == SelectedSpell)
+    {
+        return;
+    }
+    
+    if (newSpell == OtherSpell)
+    {
+        await OtherSpellChanged.InvokeAsync(OtherSpell = SelectedSpell);
+    }
+
+    await SelectedSpellChanged.InvokeAsync(SelectedSpell = newSpell);
+}
+}

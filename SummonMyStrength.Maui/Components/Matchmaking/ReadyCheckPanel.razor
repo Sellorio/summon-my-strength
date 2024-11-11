@@ -1,0 +1,97 @@
+﻿@implements IDisposable
+@inject SummonMyStrength.Api.Matchmaking.IReadyCheckService ReadyCheckService
+
+@if (_readyCheck != null)
+{
+    <div class="wrapper">
+        <div>
+            @{
+                Color statusColor;
+
+                switch (_readyCheck?.PlayerResponse)
+                {
+                    case Api.Matchmaking.ReadyCheckPlayerResponse.Accepted:
+                        statusColor = Color.Success;
+                        break;
+                    case Api.Matchmaking.ReadyCheckPlayerResponse.Declined:
+                        statusColor = Color.Error;
+                        break;
+                    default:
+                        statusColor = Color.Default;
+                        break;
+                }
+            }
+
+            <MudGrid Justify="Justify.Center" Spacing="0">
+                <MudItem Style="position: relative">
+                    <div class="progress-circle">
+                        <MudProgressCircular Color="@statusColor" Size="Size.Large" Min="0" Max="13" Value="(DateTime.Now - _startedAt).TotalSeconds" StrokeWidth="6" />
+                    </div>
+                    <div class="progress-text">
+                        Ready<br>
+                        Check
+                    </div>
+                </MudItem>
+            </MudGrid>
+        </div>
+    </div>
+}
+
+@code {
+    private System.Timers.Timer _timer;
+    private DateTime _startedAt = DateTime.Now;
+    private SummonMyStrength.Api.Matchmaking.ReadyCheck _readyCheck;
+
+    protected override void OnInitialized()
+    {
+        _timer = new System.Timers.Timer
+        {
+            AutoReset = true,
+            Enabled = true,
+            Interval = 10
+        };
+
+        _timer.Elapsed += (s, e) => InvokeAsync(StateHasChanged);
+
+        ReadyCheckService.ReadyCheckCreated -= ReadyCheckCreated;
+        ReadyCheckService.ReadyCheckUpdated += ReadyCheckUpdated;
+        ReadyCheckService.ReadyCheckDeleted += ReadyCheckDeleted;
+    }
+
+    public void Dispose()
+    {
+        _timer.Dispose();
+        ReadyCheckService.ReadyCheckCreated -= ReadyCheckCreated;
+        ReadyCheckService.ReadyCheckUpdated -= ReadyCheckUpdated;
+        ReadyCheckService.ReadyCheckDeleted -= ReadyCheckDeleted;
+    }
+
+    private async Task ReadyCheckCreated(SummonMyStrength.Api.Matchmaking.ReadyCheck readyCheck)
+    {
+        _readyCheck = readyCheck;
+        _timer.Start();
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task ReadyCheckUpdated(SummonMyStrength.Api.Matchmaking.ReadyCheck readyCheck)
+    {
+        // if we are far off the timer (> 1s) update our local timer
+        if (Math.Abs(readyCheck.Timer - (DateTime.Now - _startedAt).TotalSeconds) > 1.0)
+        {
+            _startedAt = DateTime.Now.AddSeconds(-readyCheck.Timer);
+        }
+
+        _readyCheck = readyCheck;
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task ReadyCheckDeleted(SummonMyStrength.Api.Matchmaking.ReadyCheck readyCheck)
+    {
+        _readyCheck = null;
+        _timer.Stop();
+
+        await InvokeAsync(StateHasChanged);
+    }
+}

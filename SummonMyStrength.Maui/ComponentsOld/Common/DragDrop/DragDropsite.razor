@@ -1,0 +1,17 @@
+﻿@typeparam T
+
+<div class="drop-site-wrapper" @onmouseover="DragEntering" @onmouseout="DragLeaving">
+
+@if (ChildContent == null || !_isActive)
+{
+    <div class="drop-site @(_isActive ? "active" : "")" style="height: @(_height + "px"); width: @(_width + "px")">
+    </div>
+}
+else
+{
+    <RenderFragmentWrapper WrapperContent="ChildContent">
+        <div class="drop-site @(_isActive ? "active" : "")" style="height: @(_height + "px"); width: @(_width + "px")">
+        </div>
+    </RenderFragmentWrapper>
+}
+</div>

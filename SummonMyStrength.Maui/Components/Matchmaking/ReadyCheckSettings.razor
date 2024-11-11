@@ -1,0 +1,26 @@
+﻿@using SummonMyStrength.Maui.Data
+@inject IUserSettingsService UserSettingsService
+
+<MudGrid Justify="Justify.Center" Style="align-items: center">
+    <MudItem xs="5">
+        <MudText Typo="Typo.subtitle2">Accept Ready Checks?</MudText>
+    </MudItem>
+    <MudItem>
+        <MudSwitch T="bool" Color="Color.Success" Class="mr-0" Value="_userSettings.AutoAcceptReadyChecks" ValueChanged="CheckedChangedAsync" />
+    </MudItem>
+</MudGrid>
+
+@code {
+    private UserSettings _userSettings;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _userSettings = await UserSettingsService.GetSettingsAsync();
+    }
+
+    private async Task CheckedChangedAsync(bool newValue)
+    {
+        _userSettings.AutoAcceptReadyChecks = newValue;
+        await UserSettingsService.SaveSettingsAsync();
+    }
+}

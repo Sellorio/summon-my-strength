@@ -1,0 +1,24 @@
+﻿@using SummonMyStrength.Api.Collections.Champions
+@inject IChampionService ChampionService
+
+<div class="champion-grid-item @(Selected ? "selected" : "") @(Disabled ? "disabled" : "") @(ReadOnly ? "readonly" : "")">
+    <img alt="@Champion.Name" src="@ChampionService.GetIconUrl(Champion)" @onclick="() => Disabled || ReadOnly ? Task.CompletedTask : OnClick.InvokeAsync()">
+    <div class="champion-name">@Champion.Name</div>
+</div>
+
+@code {
+    [Parameter]
+    public Champion Champion { get; set; }
+
+    [Parameter]
+    public bool Selected { get; set; }
+
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    [Parameter]
+    public bool ReadOnly { get; set; }
+
+    [Parameter]
+    public EventCallback OnClick { get; set; }
+}

@@ -1,4 +1,4 @@
-﻿using SummonMyStrength.Api.Champions;
+﻿using SummonMyStrength.Api.Collections.Champions;
 using System.Collections.Generic;
 
 namespace SummonMyStrength.Simulation.Champions;

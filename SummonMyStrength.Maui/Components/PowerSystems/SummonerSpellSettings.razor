@@ -1,0 +1,81 @@
+﻿@using SummonMyStrength.Api.Collections.Champions
+@using SummonMyStrength.Api.PowerSystems.SummonerSpells
+@using SummonMyStrength.Maui.Components.Collections.Champions
+@using SummonMyStrength.Maui.Data
+@inject IDialogService DialogService
+@inject IUserSettingsService UserSettingsService
+@inject IChampionService ChampionService
+
+<MudGrid Justify="Justify.Center" Style="align-items: center">
+    <MudItem xs="5">
+        <MudText Typo="Typo.subtitle2">Auto Set Summoner Spells?</MudText>
+    </MudItem>
+    <MudItem>
+        <MudSwitch T="bool" Color="Color.Success" Class="mr-0" Value="_userSettings.AutoSetSummonerSpells" ValueChanged="CheckedChangedAsync" />
+    </MudItem>
+</MudGrid>
+
+<MudExpansionPanels Class="mt-8">
+    @foreach (var a in _userSettings.SummonerSpellPreferences.OrderBy(x => _champions.First(y => y.Id == x.Key).Name))
+    {
+        var championId = a.Key;
+        <SummonerSpellSettingsChampionRow ChampionId="a.Key" Preferences="a.Value" OnDeleteRequested="() => DeleteChampionAsync(championId)" />
+    }
+</MudExpansionPanels>
+
+<MudButton Size="Size.Small" Variant="Variant.Filled" Color="Color.Primary" Class="mt-4" OnClick="AddChampionAsync">Add</MudButton>
+
+@code {
+    private UserSettings _userSettings;
+    private Champion[] _champions;
+
+    [Parameter]
+    public EventCallback SettingsChanged { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _userSettings = await UserSettingsService.GetSettingsAsync();
+        _champions = await ChampionService.GetChampionsAsync();
+    }
+
+    private async Task CheckedChangedAsync(bool newValue)
+    {
+        _userSettings.AutoSetSummonerSpells = newValue;
+        await UserSettingsService.SaveSettingsAsync();
+        await SettingsChanged.InvokeAsync();
+    }
+
+    private async Task AddChampionAsync()
+    {
+        var existingChampionIds = _userSettings.SummonerSpellPreferences.Keys.ToArray();
+
+        var dialogParameters = new DialogParameters<ChampionSelectDialog>();
+        dialogParameters.Add(x => x.ExcludedChampionIds, existingChampionIds);
+        var dialogReference = await DialogService.ShowAsync<ChampionSelectDialog>(null, dialogParameters);
+        var dialogResult = await dialogReference.Result;
+
+        if (dialogResult.Canceled)
+        {
+            return;
+        }
+
+        var newChampionId = (int)dialogResult.Data;
+
+        _userSettings.SummonerSpellPreferences.Add(
+            newChampionId,
+            new()
+                {
+                    { AssignedPositionOrDefault.Default, new() { Spell1 = SpellId.Flash, Spell2 = SpellId.Ignite } }
+                });
+
+        await UserSettingsService.SaveSettingsAsync();
+        await SettingsChanged.InvokeAsync();
+    }
+
+    private async Task DeleteChampionAsync(int championId)
+    {
+        _userSettings.SummonerSpellPreferences.Remove(championId);
+        await UserSettingsService.SaveSettingsAsync();
+        await SettingsChanged.InvokeAsync();
+    }
+}

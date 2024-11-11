@@ -1,0 +1,172 @@
+﻿@using SummonMyStrength.Api.ChampSelect
+@using SummonMyStrength.Api.Collections.Champions
+@using SummonMyStrength.Api.Connectors
+@using SummonMyStrength.Api.PowerSystems.Runes
+@using SummonMyStrength.Maui.Data
+@implements IDisposable
+@inject IChampionService ChampionService
+@inject IRunePageService RunePageService
+@inject IChampSelectSessionService ChampSelectSessionService
+@inject ILeagueClientWebSocketConnector ClientWebSocketConnector
+@inject IUserSettingsService UserSettingsService
+
+<ComponentSettings SectionName="Runes">
+    <RunePageSettings RunesLoadedFor="_runesLoadedFor" OnRunePageLoadRequested="LoadRunesForChampionAsync" />
+</ComponentSettings>
+
+<div class="runes-loaded-for-text">
+    @if (_runesLoadingFor != null)
+    {
+        <text>Runes loading for <span class="champion-name">@_runesLoadingFor.Name</span>...</text>
+    }
+    else if (_runesLoadedFor != null)
+    {
+        <text>Runes loaded for <span class="champion-name">@_runesLoadedFor.Name</span>.</text>
+    }
+    else
+    {
+        <text>Runes not loaded yet.</text>
+    }
+</div>
+
+@code {
+    private Champion[] _champions;
+    private UserSettings _userSettings;
+
+    private Champion _runesLoadedFor;
+    private Champion _runesLoadingFor;
+    private bool _switchingRunes;
+    private DateTime _runesLoadedAt;
+    private RunePage[] _loadedRunePages;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _champions = await ChampionService.GetChampionsAsync();
+        _userSettings = await UserSettingsService.GetSettingsAsync();
+
+        ClientWebSocketConnector.Disconnected += Disconnected;
+        RunePageService.RunePageUpdated += RunePageUpdated;
+        RunePageService.RunePagesUpdated += RunePagesUpdated;
+        ChampSelectSessionService.ChampSelectSessionCreated += ChampSelectSessionChanged;
+        ChampSelectSessionService.ChampSelectSessionUpdated += ChampSelectSessionChanged;
+    }
+
+    public void Dispose()
+    {
+        ClientWebSocketConnector.Disconnected -= Disconnected;
+        RunePageService.RunePageUpdated -= RunePageUpdated;
+        RunePageService.RunePagesUpdated -= RunePagesUpdated;
+        ChampSelectSessionService.ChampSelectSessionCreated -= ChampSelectSessionChanged;
+        ChampSelectSessionService.ChampSelectSessionUpdated -= ChampSelectSessionChanged;
+    }
+
+    private async Task Disconnected()
+    {
+        _runesLoadedFor = null;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task RunePageUpdated(RunePage runePage)
+    {
+        if (_runesLoadedFor != null && !_switchingRunes && DateTime.Now - _runesLoadedAt > TimeSpan.FromSeconds(2))
+        {
+            var oldPage = _loadedRunePages.First(x => x.Id == runePage.Id);
+            var oldPageIndex = Array.IndexOf(_loadedRunePages, oldPage);
+            _loadedRunePages[oldPageIndex] = runePage;
+            await SaveRunes();
+        }
+    }
+
+    private async Task RunePagesUpdated(RunePage[] runePages)
+    {
+        if (_runesLoadedFor != null && !_switchingRunes && DateTime.Now - _runesLoadedAt > TimeSpan.FromSeconds(2))
+        {
+            _loadedRunePages = runePages;
+            await SaveRunes();
+        }
+    }
+
+    private async Task ChampSelectSessionChanged(ChampSelectSession session)
+    {
+        var championId =
+            session.Player == null
+                ? 0
+                : (session.Player.ChampionId != default ? session.Player.ChampionId : session.Player.ChampionPickIntent);
+
+        if (championId == default && _runesLoadedFor == null ||
+            championId == _runesLoadedFor?.Id)
+        {
+            // no change in selected champion
+        }
+        else if (championId == default)
+        {
+            await LoadRunesForChampionAsync(null);
+        }
+        else
+        {
+            var champion = _champions.First(x => x.Id == championId);
+            await LoadRunesForChampionAsync(champion);
+        }
+    }
+
+    private async Task LoadRunesForChampionAsync(Champion champion)
+    {
+        if (champion == _runesLoadedFor || champion == _runesLoadingFor)
+        {
+            return;
+        }
+
+        if (!ClientWebSocketConnector.IsConnected)
+        {
+            return;
+        }
+
+        var runePages = Array.Empty<RunePage>();
+
+        if (champion != null)
+        {
+            if (_userSettings.RunePages.ContainsKey(champion.Id))
+            {
+                runePages = _userSettings.RunePages[champion.Id];
+            }
+        }
+
+        _switchingRunes = true;
+        _runesLoadingFor = champion;
+
+        var existingRunePages = _loadedRunePages ?? await RunePageService.GetPagesAsync();
+
+        foreach (var page in existingRunePages)
+        {
+            if (!page.Name.StartsWith("QP ") && page.IsDeletable)
+            {
+                await RunePageService.DeletePageAsync(page.Id);
+            }
+        }
+
+        foreach (var page in runePages)
+        {
+            // runes being changed in another thread to a new champ
+            if (_runesLoadingFor != champion)
+            {
+                return;
+            }
+
+            page.Id = (await RunePageService.CreatePageAsync(page)).Id;
+        }
+
+        _runesLoadedFor = champion;
+        _runesLoadedAt = DateTime.Now;
+        _switchingRunes = false;
+        _runesLoadingFor = null;
+        _loadedRunePages = runePages;
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task SaveRunes()
+    {
+        _userSettings.RunePages[_runesLoadedFor.Id] = _loadedRunePages.Where(x => !x.Name.StartsWith("QP ") && x.IsDeletable).ToArray();
+        await UserSettingsService.SaveSettingsAsync();
+    }
+}

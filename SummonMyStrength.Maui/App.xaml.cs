@@ -1,10 +1,14 @@
-﻿namespace SummonMyStrength.Maui;
+﻿using SummonMyStrength.Maui.Data;
+
+namespace SummonMyStrength.Maui;
 
 public partial class App : Application
 {
-    public App()
+    public App(IUserSettingsService userSettingsService)
     {
         InitializeComponent();
+
+        var userSettings = userSettingsService.GetSettings();
         
         Microsoft.Maui.Handlers.WindowHandler.Mapper.AppendToMapping(nameof(IWindow), (handler, view) =>
         {
@@ -18,30 +22,30 @@ public partial class App : Application
             var windowId = Microsoft.UI.Win32Interop.GetWindowIdFromWindow(windowHandle);
             var appWindow = Microsoft.UI.Windowing.AppWindow.GetFromWindowId(windowId);
 
-            appWindow.Resize(new Windows.Graphics.SizeInt32(DataStore.WindowWidth ?? 630, DataStore.WindowHeight ?? 700));
+            appWindow.Resize(new Windows.Graphics.SizeInt32(userSettings.WindowWidth ?? 630, userSettings.WindowHeight ?? 700));
             
-            if (DataStore.WindowX != null && DataStore.WindowY != null)
+            if (userSettings.WindowX != null && userSettings.WindowY != null)
             {
-                appWindow.Move(new(DataStore.WindowX.Value, DataStore.WindowY.Value));
+                appWindow.Move(new(userSettings.WindowX.Value, userSettings.WindowY.Value));
             }
 
             appWindow.Changed += (x, y) =>
             {
                 if (y.DidSizeChange)
                 {
-                    DataStore.WindowWidth = appWindow.Size.Width;
-                    DataStore.WindowHeight = appWindow.Size.Height;
+                    userSettings.WindowWidth = appWindow.Size.Width;
+                    userSettings.WindowHeight = appWindow.Size.Height;
                 }
 
                 if (y.DidPositionChange)
                 {
-                    DataStore.WindowX = appWindow.Position.X;
-                    DataStore.WindowY = appWindow.Position.Y;
+                    userSettings.WindowX = appWindow.Position.X;
+                    userSettings.WindowY = appWindow.Position.Y;
                 }
 
                 if (y.DidSizeChange || y.DidPositionChange)
                 {
-                    _ = DataStore.SaveAsync();
+                    _ = userSettingsService.SaveSettingsAsync();
                 }
             };
 #endif

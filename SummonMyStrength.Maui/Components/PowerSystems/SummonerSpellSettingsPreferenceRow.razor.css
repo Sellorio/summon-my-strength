@@ -1,0 +1,32 @@
+.preference-row ::deep .position {
+    width: 80px;
+}
+
+.preference-row ::deep .spells {
+    flex-grow: 1;
+}
+
+.position-icon {
+    width: 40px;
+    height: 40px;
+}
+
+.spell-icon {
+    display: block;
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+    transition: filter 0.05s linear;
+}
+
+.spell-icons {
+    display: flex;
+}
+
+.spell-icon + .spell-icon {
+    margin-left: 5px;
+}
+
+.spell-icon:hover {
+    filter: brightness(1.25) contrast(0.93);
+}

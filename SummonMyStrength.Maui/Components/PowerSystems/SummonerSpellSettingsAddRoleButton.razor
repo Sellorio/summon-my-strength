@@ -1,0 +1,14 @@
+﻿@using SummonMyStrength.Maui.Data
+
+<button class="add-role" @onclick="OnClick">
+    <img alt="@Position" src="@($"img/positions/icon-position-{Position.ToString().ToLower()}-blue.png")">
+    <MudIcon Icon="@Icons.Material.Outlined.Add" />
+</button>
+
+@code {
+    [Parameter]
+    public AssignedPositionOrDefault Position { get; set; }
+
+    [Parameter]
+    public EventCallback OnClick { get; set; }
+}

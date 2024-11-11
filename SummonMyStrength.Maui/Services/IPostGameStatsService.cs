@@ -1,4 +1,4 @@
-﻿using SummonMyStrength.Api.PostGame;
+﻿using SummonMyStrength.Api.PostGame.Stats;
 
 namespace SummonMyStrength.Maui.Services;
 

@@ -2,6 +2,4 @@
 
 internal static class Config
 {
-    internal const string DataDragonHttpClientName = "DataDragon";
-    internal const string ClientApiHttpClientName = "ApiClient";
 }

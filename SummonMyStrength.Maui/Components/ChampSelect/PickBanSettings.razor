@@ -1,0 +1,48 @@
+﻿@using SummonMyStrength.Api.ChampSelect
+@using SummonMyStrength.Maui.Data
+@inject IUserSettingsService UserSettingsService
+
+@if (_userSettings != null)
+{
+    <MudGrid Justify="Justify.Center" Style="align-items: center">
+        <MudItem xs="5">
+            <MudText Typo="Typo.subtitle2">Auto Pick/Ban?</MudText>
+        </MudItem>
+        <MudItem>
+            <MudSwitch T="bool" Color="Color.Success" Class="mr-0" Value="_userSettings.AutoPickBanChampions" ValueChanged="CheckedChangedAsync" />
+        </MudItem>
+    </MudGrid>
+
+    <MudTabs Class="mt-8" MinimumTabWidth="0">
+        <MudTabPanel Text="Top">
+            <PickBanSettingsPosition Preferences="_userSettings.ChampionPreferences[ChampSelectAssignedPosition.Top]" />
+        </MudTabPanel>
+        <MudTabPanel Text="Jungle">
+            <PickBanSettingsPosition Preferences="_userSettings.ChampionPreferences[ChampSelectAssignedPosition.Jungle]" />
+        </MudTabPanel>
+        <MudTabPanel Text="Middle">
+            <PickBanSettingsPosition Preferences="_userSettings.ChampionPreferences[ChampSelectAssignedPosition.Middle]" />
+        </MudTabPanel>
+        <MudTabPanel Text="Bottom">
+            <PickBanSettingsPosition Preferences="_userSettings.ChampionPreferences[ChampSelectAssignedPosition.Bottom]" />
+        </MudTabPanel>
+        <MudTabPanel Text="Support">
+            <PickBanSettingsPosition Preferences="_userSettings.ChampionPreferences[ChampSelectAssignedPosition.Support]" />
+        </MudTabPanel>
+    </MudTabs>
+}
+
+@code {
+    private UserSettings _userSettings;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _userSettings = await UserSettingsService.GetSettingsAsync();
+    }
+
+    private async Task CheckedChangedAsync(bool newValue)
+    {
+        _userSettings.AutoPickBanChampions = newValue;
+        await UserSettingsService.SaveSettingsAsync();
+    }
+}

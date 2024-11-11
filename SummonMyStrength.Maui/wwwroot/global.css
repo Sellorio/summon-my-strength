@@ -1,3 +1,12 @@
 ﻿html, body, #app {
     height: 100%;
 }
+
+.mud-dialog .mud-dialog-title {
+    padding-bottom: 6px;
+}
+
+.mud-dialog .mud-dialog-content {
+    padding-bottom: 24px;
+    padding-top: 24px;
+}
