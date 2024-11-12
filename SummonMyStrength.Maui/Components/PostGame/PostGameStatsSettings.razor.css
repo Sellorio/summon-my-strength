@@ -1,0 +1,44 @@
+.enabled-stat-tab {
+    margin-top: -1px;
+    background: var(--mud-palette-background);
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+.enabled-stat-tab .stat-icon {
+    display: block;
+    margin-right: 10px;
+    margin: 5px 20px 5px 7px;
+    width: 30px;
+    height: 30px;
+}
+
+.enabled-stat-tab ::deep .mud-grid {
+    align-items: center;
+}
+
+.enabled-stat-tab ::deep .stat-name {
+    position: relative;
+    top: 1px;
+    flex-grow: 1;
+    font-size: 18px;
+}
+
+.enabled-stat-tab ::deep .mud-grid-item:nth-child(3) .mud-icon-root {
+    display: block;
+    opacity: 0.3;
+    margin-right: 4px;
+}
+
+.stat-dropdown-item {
+    display: flex;
+    align-items: center;
+}
+
+.stat-dropdown-item .stat-icon {
+    margin-right: 15px;
+}
+
+.stat-dropdown-item .stat-name {
+    position: relative;
+    top: 1px;
+}

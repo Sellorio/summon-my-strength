@@ -60,6 +60,7 @@
     {
         if (_userSettings.SkipPostGameStatsScreen)
         {
+            await Task.Delay(1000);
             await PostGameLobbyService.PlayAgainAsync();
         }
     }

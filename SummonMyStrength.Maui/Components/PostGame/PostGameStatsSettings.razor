@@ -1,4 +1,5 @@
 ﻿@using SummonMyStrength.Api.PostGame.Stats
+@using SummonMyStrength.Maui.Components.Common.DragDrop
 @using SummonMyStrength.Maui.Data
 @inject IUserSettingsService UserSettingsService
 
@@ -11,7 +12,56 @@
     </MudItem>
 </MudGrid>
 
+<MudText Typo="Typo.h6">Stat Tabs</MudText>
+
+<div class="enabled-stat-tabs">
+    @{
+        var i = 0;
+    }
+
+    @foreach (var s in _userSettings.PostGameGraphStatIds)
+    {
+        var statId = s;
+        var info = StatReaders.FirstOrDefault(x => x.Key == statId);
+        var index = i;
+
+        if (info == null)
+        {
+            continue;
+        }
+
+        <Draggable T="string" GroupKey="@("statgraph")" Key="statId" OnDragCompleted="() => _userSettings.PostGameGraphStatIds.Remove(statId)" OnInsertDrop="x => InsertDropAsync(statId, x)">
+            <div class="enabled-stat-tab">
+                <MudGrid Spacing="0">
+                    <MudItem><img class="stat-icon" src="@($"img/post-game-stats/{info.IconPath}")"></MudItem>
+                    <MudItem Class="stat-name">@info.Name</MudItem>
+                    <MudItem><MudIcon Icon="@Icons.Material.Outlined.DragHandle" /></MudItem>
+                    <MudItem><MudIconButton Size="Size.Medium" Icon="@Icons.Material.Outlined.Close" OnClick="() => RemoveStatGraphAsync(statId)" /></MudItem>
+                </MudGrid>
+            </div>
+        </Draggable>
+
+        i++;
+    }
+
+    <DragDropsite T="string" GroupKey="@("statgraph")" OnDrop="AppendDropAsync" />
+</div>
+
+<MudSelect @ref="_addStatGraphSelect" T="string" Label="Add Graph" Class="mt-2" Value="string.Empty" ValueChanged="AddStatGraphAsync">
+    @foreach (var statInfo in StatReaders.Where(x => !_userSettings.PostGameGraphStatIds.Contains(x.Key)))
+    {
+        <MudSelectItem T="string" Value="statInfo.Key">
+            <div class="stat-dropdown-item">
+                <img class="stat-icon" src="@($"img/post-game-stats/{statInfo.IconPath}")">
+                <span class="stat-name">@statInfo.Name</span>
+            </div>
+        </MudSelectItem>
+    }
+</MudSelect>
+
 @code {
+    private MudSelect<string> _addStatGraphSelect;
+
     private UserSettings _userSettings;
 
     [Parameter]
@@ -26,5 +76,32 @@
     {
         _userSettings.SkipPostGameStatsScreen = newValue;
         await UserSettingsService.SaveSettingsAsync();
+    }
+
+    private async Task InsertDropAsync(string insertBeforeStatId, string droppedStatId)
+    {
+        var index = _userSettings.PostGameGraphStatIds.IndexOf(insertBeforeStatId);
+        _userSettings.PostGameGraphStatIds.Insert(index, droppedStatId);
+        await UserSettingsService.SaveSettingsAsync();
+    }
+
+    private async Task AppendDropAsync(string droppedStatId)
+    {
+        _userSettings.PostGameGraphStatIds.Add(droppedStatId);
+        await UserSettingsService.SaveSettingsAsync();
+    }
+
+    private async Task AddStatGraphAsync(string statId)
+    {
+        _userSettings.PostGameGraphStatIds.Add(statId);
+        await UserSettingsService.SaveSettingsAsync();
+        await _addStatGraphSelect.ResetAsync();
+    }
+
+    private async Task RemoveStatGraphAsync(string statId)
+    {
+        _userSettings.PostGameGraphStatIds.Remove(statId);
+        await UserSettingsService.SaveSettingsAsync();
+        await _addStatGraphSelect.ResetAsync();
     }
 }
