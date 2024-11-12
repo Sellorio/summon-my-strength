@@ -35,14 +35,21 @@
                         _lockIn = true;
                         await ProcessHandsFreeActionsAsync(false, true);
                     }),
-                    null,
-                    Timeout.Infinite,
-                    Timeout.Infinite);
+                null,
+                Timeout.Infinite,
+                Timeout.Infinite);
 
         ChampSelectSessionService.ChampSelectSessionCreated += ChampSelectSessionUpdated;
         ChampSelectSessionService.ChampSelectSessionUpdated += ChampSelectSessionUpdated;
         ChampSelectSessionService.ChampSelectSessionDeleted += ChampSelectSessionDeleted;
         ChampSelectSessionAbstractor.OnPhaseChanged += ChampSelectPhaseChanged;
+
+        var session = await ChampSelectSessionService.GetSessionAsync();
+
+        if (session != null)
+        {
+            await ChampSelectSessionUpdated(session);
+        }
     }
 
     public void Dispose()

@@ -1,13 +1,12 @@
 ﻿@page "/"
 @using SummonMyStrength.Api.Connectors
 @using SummonMyStrength.Api.General
-@using SummonMyStrength.Maui.ComponentsOld
 @using SummonMyStrength.Maui.Services
-@using SummonMyStrength.Maui.ComponentsOld.PostGame
+@using SummonMyStrength.Maui.Components
 @inject ILeagueClientWebSocketConnector LeagueClientWebSocketConnector
 @inject ILeagueClientApiConnector LeagueClientApiConnector
 
-<SummonMyStrength.Maui.ComponentsOld.Main.StatusBar @bind-ShowSettings="_showSettings" />
+<StatusBar @bind-ShowSettings="_showSettings" />
 
 <div class="main-content">
     <div class="features @(_showSettings ? "hidden" : "")">
@@ -15,11 +14,12 @@
         <SummonMyStrength.Maui.Components.PowerSystems.SummonerSpellFeature />
         <SummonMyStrength.Maui.Components.Matchmaking.ReadyCheckFeature />
         <SummonMyStrength.Maui.Components.ChampSelect.PickBanFeature />
+        <SummonMyStrength.Maui.Components.PostGame.PostGameStatsFeature />
     </div>
 
     @if (_showSettings)
     {
-        <SummonMyStrength.Maui.ComponentsOld.Main.ComponentSettingsEditor />
+        <ComponentSettingsEditor />
     }
 </div>
 

@@ -4,6 +4,7 @@ using SummonMyStrength.Api.Collections.Champions;
 using SummonMyStrength.Api.Connectors;
 using SummonMyStrength.Api.General;
 using SummonMyStrength.Api.Matchmaking;
+using SummonMyStrength.Api.PostGame;
 using SummonMyStrength.Api.PostGame.Honors;
 using SummonMyStrength.Api.PostGame.Stats;
 using SummonMyStrength.Api.PowerSystems.Runes;
@@ -66,6 +67,7 @@ public static class ServiceCollectionExtensions
             .AddScoped<IReadyCheckService, ReadyCheckService>()
 
             // Post Game
+            .AddScoped<IPostGameLobbyService, PostGameLobbyService>()
             .AddScoped<IHonorService, HonorService>()
             .AddScoped<IPostGameStatsService, PostGameStatsService>()
 

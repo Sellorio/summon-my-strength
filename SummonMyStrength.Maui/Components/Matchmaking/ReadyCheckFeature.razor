@@ -1,5 +1,4 @@
 ﻿@using SummonMyStrength.Api.Matchmaking
-@using System.Timers
 @using SummonMyStrength.Maui.Data
 @implements IDisposable
 @inject IUserSettingsService UserSettingsService
@@ -12,13 +11,26 @@
 <ReadyCheckPanel />
 
 @code {
+    private const float Delay = 2.5f;
+
     private UserSettings _userSettings;
+    private Timer _timer;
+    private bool _isTimerRunning;
 
     protected override async Task OnInitializedAsync()
     {
+        _timer = new Timer(TimerElapsed, null, Timeout.Infinite, Timeout.Infinite);
+
         ReadyCheckService.ReadyCheckUpdated += ReadyCheckUpdated;
 
         _userSettings = await UserSettingsService.GetSettingsAsync();
+
+        var readyCheck = await ReadyCheckService.GetReadyCheckAsync();
+
+        if (readyCheck != null)
+        {
+            await ReadyCheckUpdated(readyCheck);
+        }
     }
 
     public void Dispose()
@@ -26,11 +38,29 @@
         ReadyCheckService.ReadyCheckUpdated -= ReadyCheckUpdated;
     }
 
+    private void TimerElapsed(object _)
+    {
+        _isTimerRunning = false;
+        _ = ReadyCheckService.AcceptReadyCheckAsync();
+    }
+
     private async Task ReadyCheckUpdated(ReadyCheck readyCheck)
     {
-        if (_userSettings.AutoAcceptReadyChecks && readyCheck.Timer >= 2.0f)
+        if (readyCheck.PlayerResponse != ReadyCheckPlayerResponse.None)
         {
+            _timer.Change(Timeout.Infinite, Timeout.Infinite);
+            _isTimerRunning = false;
+        }
+        else if (readyCheck.Timer > Delay)
+        {
+            _timer.Change(Timeout.Infinite, Timeout.Infinite);
+            _isTimerRunning = false;
             await ReadyCheckService.AcceptReadyCheckAsync();
+        }
+        else if (!_isTimerRunning)
+        {
+            _timer.Change((int)((Delay - readyCheck.Timer) * 1000), Timeout.Infinite);
+            _isTimerRunning = true;
         }
     }
 }

@@ -40,5 +40,5 @@ public class UserSettings
 
     // Post Game
     public bool SkipPostGameStatsScreen { get; set; }
-    public List<string> PostGameGraphStatIds { get; set; } = [];
+    public List<string> PostGameGraphStatIds { get; set; } = ["DMG", "KDA", "CS"];
 }

@@ -15,7 +15,7 @@
     </MudItem>
 </MudGrid>
 
-<MudExpansionPanels Class="mt-8">
+<MudExpansionPanels Class="mt-6">
     @foreach (var a in _userSettings.SummonerSpellPreferences.OrderBy(x => _champions.First(y => y.Id == x.Key).Name))
     {
         var championId = a.Key;

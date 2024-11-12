@@ -1,0 +1,66 @@
+﻿@using SummonMyStrength.Api.PostGame
+@using SummonMyStrength.Api.PostGame.Stats
+@using SummonMyStrength.Maui.Data
+@implements IDisposable
+@inject IPostGameLobbyService PostGameLobbyService
+@inject IPostGameStatsService PostGameStatsService
+@inject IUserSettingsService UserSettingsService
+
+<ComponentSettings SectionName="Post-Game Stats">
+    <PostGameStatsSettings StatReaders="_statReaders" />
+</ComponentSettings>
+
+<PostGameStatsPanel StatReaders="_statReaders" />
+
+@code {
+    private const string PhysicalDamageColor = "#950";
+    private const string MagicDamageColor = "#47F";
+    private const string TrueDamageColor = "#FFF";
+
+    private static readonly PostGameStatInfo[] _statReaders =
+    [
+        new PostGameStatInfo("KDA", "KDA", (PostGamePlayerStats x) => (x.Kills + x.Assists) / (decimal)Math.Max(x.Deaths, 1), "kda.png"),
+        new PostGameStatInfo("K", "Kills", (PostGamePlayerStats x) => x.Kills, "kills.png"),
+        new PostGameStatInfo("A", "Assists", (PostGamePlayerStats x) => x.Assists, "assists.png"),
+        new PostGameStatInfo("D", "Deaths", (PostGamePlayerStats x) => x.Deaths, "deaths.png"),
+        new PostGameStatInfo("CS", "Critter Score (CS)", (PostGamePlayerStats x) => x.CritterScore, "cs.png"),
+        new PostGameStatInfo("G", "Gold", (PostGamePlayerStats x) => x.Gold, "gold.png"),
+        new PostGameStatInfo("VS", "Vision Score", (PostGamePlayerStats x) => x.VisionScore, "vision-score.png"),
+        new PostGameStatInfo("CC", "Crowd Control Score", (PostGamePlayerStats x) => x.CrowdControlScore, "crowd-control-score.png"),
+        new PostGameStatInfo("CCR", "Crowd Control Received", (PostGamePlayerStats x) => x.CrowdControlReceived, "crowd-control-received.png"),
+        new PostGameStatInfo("DMG", "Damage", (PostGamePlayerStats x) => x.TotalDamage, "damage.png"),
+        new PostGameStatInfo("MDMG", "Magic Damage", (PostGamePlayerStats x) => x.MagicDamage, "damage-magic.png"),
+        new PostGameStatInfo("PDMG", "Physical Damage", (PostGamePlayerStats x) => x.PhysicalDamage, "damage-physical.png"),
+        new PostGameStatInfo("TMDG", "True Damage", (PostGamePlayerStats x) => x.TrueDamage, "damage-true.png"),
+        new PostGameStatInfo("DMGT", "Damage Taken", (PostGamePlayerStats x) => x.DamageTaken, "damage-received.png"),
+        new PostGameStatInfo("MDMGT", "Magic Damage Taken", (PostGamePlayerStats x) => x.MagicDamageTaken, "damage-received-magic.png"),
+        new PostGameStatInfo("PDMGT", "Physical Damage Taken", (PostGamePlayerStats x) => x.PhysicalDamageTaken, "damage-received-physical.png"),
+        new PostGameStatInfo("TDMGT", "True Damage Taken", (PostGamePlayerStats x) => x.TrueDamageTaken, "damage-received-true.png"),
+        new PostGameStatInfo("MIT", "Self Mitigated Damage", (PostGamePlayerStats x) => x.SelfMitigatedDamage, "self-mitigated.png"),
+        new PostGameStatInfo("HEAL", "Total Healing", (PostGamePlayerStats x) => x.Healing, "healing.png"),
+        new PostGameStatInfo("AHEAL", "Ally Healing", (PostGamePlayerStats x) => x.AllyHealing, "ally-healing.png"),
+        new PostGameStatInfo("ASHI", "Ally Shielding", (PostGamePlayerStats x) => x.AllyShielding, "ally-shielding.png"),
+    ];
+
+    private UserSettings _userSettings;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _userSettings = await UserSettingsService.GetSettingsAsync();
+
+        PostGameStatsService.EnteredPostGameStatsPhase += EnteredPostGameStatsPhase;
+    }
+
+    public void Dispose()
+    {
+        PostGameStatsService.EnteredPostGameStatsPhase -= EnteredPostGameStatsPhase;
+    }
+
+    private async Task EnteredPostGameStatsPhase()
+    {
+        if (_userSettings.SkipPostGameStatsScreen)
+        {
+            await PostGameLobbyService.PlayAgainAsync();
+        }
+    }
+}

@@ -1,0 +1,46 @@
+.post-game-stats {
+    margin: 10px;
+}
+
+.post-game-stats header {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: -10px;
+    font-size: 18px;
+    z-index: 1;
+}
+
+.stat-icon {
+    display: block;
+    margin: -10px 0;
+    width: 22px;
+    height: 22px;
+    image-rendering: optimizeSpeed;
+}
+
+.post-game-stats ::deep .mud-tabs-panels {
+    background: rgba(0,0,0,0.2);
+}
+
+.graph {
+    margin: 12px 15px;
+    border-right: 1px dotted rgba(255,255,255,0.5);
+}
+
+.graph .graph-max {
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: 2px 2px 0 3px;
+    min-width: 22px;
+    border-radius: 0 0 0 5px;
+    background: #222;
+    text-align: center;
+    line-height: 1;
+}
+
+.team-separator {
+    padding: 1px 0;
+}

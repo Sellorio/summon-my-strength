@@ -1,0 +1,37 @@
+﻿@using SummonMyStrength.Api.Collections.Champions
+@inject IChampionService ChampionService
+
+<div class="graph-bar @(Me ? "me" : "") @(Ally ? "ally" : "") @(Enemy ? "enemy" : "")" style="@($"width:{Value / Max * 100}%")">
+    <MudTooltip Placement="Placement.Start" Inline="false">
+        <TooltipContent>
+            <div class="graph-tooltip">
+                <img class="icon" alt="@Champion.Name" src="@ChampionService.GetIconUrl(Champion)">
+                <div class="summoner-name">@SummonerName</div>
+                <div class="value">@Math.Round(Value, 2)</div>
+            </div>
+        </TooltipContent>
+    </MudTooltip>
+</div>
+
+@code {
+    [Parameter]
+    public decimal Value { get; set; }
+
+    [Parameter]
+    public decimal Max { get; set; }
+
+    [Parameter]
+    public bool Me { get; set; }
+
+    [Parameter]
+    public bool Ally { get; set; }
+
+    [Parameter]
+    public bool Enemy { get; set; }
+
+    [Parameter]
+    public string SummonerName { get; set; }
+
+    [Parameter]
+    public Champion Champion { get; set; }
+}

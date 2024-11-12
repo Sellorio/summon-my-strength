@@ -68,8 +68,4 @@
 	  <ProjectReference Include="..\SummonMyStrength.Api\SummonMyStrength.Api.csproj" />
 	</ItemGroup>
 
-	<ItemGroup>
-	  <Folder Include="ComponentsOld\Common\Champions\" />
-	</ItemGroup>
-
 </Project>

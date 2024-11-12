@@ -9,11 +9,24 @@ internal class PostGameStatsService : IPostGameStatsService, IDisposable
 {
     private readonly ILeagueClientWebSocketConnector _clientWebSocketConnector;
 
+    public event Func<Task> EnteredPostGameStatsPhase;
     public event Func<PostGameStats, Task> PostGameStatsCreated;
 
     public PostGameStatsService(ILeagueClientWebSocketConnector clientWebSocketConnector)
     {
         _clientWebSocketConnector = clientWebSocketConnector;
+
+        _clientWebSocketConnector.AddMessageHandler<PreEndOfGameSequenceMessageBody>(
+            this,
+            MessageId.PreEndOfGameSequenceEvent,
+            MessageAction.Update,
+            async msg =>
+            {
+                if (msg.Name == "") // blank means all phases are over and stats screen is shown
+                {
+                    await EnteredPostGameStatsPhase.InvokeAsync();
+                }
+            });
 
         _clientWebSocketConnector.AddMessageHandler<PostGameStats>(
             this,

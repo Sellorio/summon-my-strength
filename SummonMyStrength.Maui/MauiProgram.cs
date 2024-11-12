@@ -1,7 +1,7 @@
 ﻿using MudBlazor.Services;
 using SummonMyStrength.Api.Setup;
 using SummonMyStrength.Maui.Components.Framework;
-using SummonMyStrength.Maui.ComponentsOld.Common.DragDrop;
+using SummonMyStrength.Maui.Components.Common.DragDrop;
 using SummonMyStrength.Maui.Data;
 using SummonMyStrength.Maui.Services;
 
