@@ -9,6 +9,7 @@ using SummonMyStrength.Api.PostGame.Honors;
 using SummonMyStrength.Api.PostGame.Stats;
 using SummonMyStrength.Api.PowerSystems.Runes;
 using SummonMyStrength.Api.PowerSystems.SummonerSpells;
+using SummonMyStrength.Api.Social;
 using System.Net.Http;
 using System.Security.Authentication;
 
@@ -75,6 +76,10 @@ public static class ServiceCollectionExtensions
             .AddScoped<IRunePageService, RunePageService>()
             .AddScoped<ISummonerSpellService, SummonerSpellService>()
             .AddScoped<ISummonerSpellSelectionService, SummonerSpellSelectionService>()
+
+            // Social
+            .AddScoped<IFriendService, FriendService>()
+            .AddScoped<IPlayerReportService, PlayerReportService>()
             ;
 
         return services;

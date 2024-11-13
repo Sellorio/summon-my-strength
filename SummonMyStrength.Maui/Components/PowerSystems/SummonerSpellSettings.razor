@@ -6,14 +6,7 @@
 @inject IUserSettingsService UserSettingsService
 @inject IChampionService ChampionService
 
-<MudGrid Justify="Justify.Center" Style="align-items: center">
-    <MudItem xs="5">
-        <MudText Typo="Typo.subtitle2">Auto Set Summoner Spells?</MudText>
-    </MudItem>
-    <MudItem>
-        <MudSwitch T="bool" Color="Color.Success" Class="mr-0" Value="_userSettings.AutoSetSummonerSpells" ValueChanged="CheckedChangedAsync" />
-    </MudItem>
-</MudGrid>
+<SettingsCheckbox Label="Auto Set Summoner Spells?" Value="_userSettings.AutoSetSummonerSpells" ValueChanged="CheckedChangedAsync" />
 
 <MudExpansionPanels Class="mt-6">
     @foreach (var a in _userSettings.SummonerSpellPreferences.OrderBy(x => _champions.First(y => y.Id == x.Key).Name))

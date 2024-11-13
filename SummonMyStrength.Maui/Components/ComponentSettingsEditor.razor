@@ -6,19 +6,19 @@
     @foreach (var sectionTitle in ComponentSettingsService.GetSettingsSections())
     {
         <MudTabPanel Text="@sectionTitle">
-            <div class="pa-4">
+            <div class="pa-6">
                 @{
                     var isFirst = true;
                 }
 
                 @foreach (var form in ComponentSettingsService.GetSettingsForms(sectionTitle))
                 {
-                    @form
-
                     if (!isFirst)
                     {
                         <hr>
                     }
+
+                    @form
 
                     isFirst = false;
                 }

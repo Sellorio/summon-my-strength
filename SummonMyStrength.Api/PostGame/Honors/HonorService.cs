@@ -9,11 +9,11 @@ internal class HonorService : IHonorService, IDisposable
 {
     // the api ignores honor requests if they come too soon after the
     // honor ballot is created
-    private const int HonorBallotCreateHonorCooldown = 1500;
+    private const int HonorBallotCreateHonorCooldown = 1000;
 
     // the api ignores honor requests if they come too soon off the heels
     // of another honor request
-    private const int HonorPlayerCooldownMilliseconds = 2000;
+    private const int HonorPlayerCooldownMilliseconds = 100;
 
     private readonly ILeagueClientWebSocketConnector _leagueClientWebSocketConnector;
     private readonly ILeagueClientApiConnector _leagueClientApiConnector;
@@ -84,6 +84,11 @@ internal class HonorService : IHonorService, IDisposable
                 _startedHonorPhase = null;
                 return Task.CompletedTask;
             });
+    }
+
+    public async Task<HonorBallot> GetHonorBallotAsync()
+    {
+        return await _leagueClientApiConnector.GetAsync<HonorBallot>("lol-honor-v2/v1/ballot");
     }
 
     public async Task HonorPlayerAsync(PlayerHonor honor)

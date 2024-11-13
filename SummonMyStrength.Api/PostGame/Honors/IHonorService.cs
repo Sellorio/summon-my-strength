@@ -8,5 +8,6 @@ public interface IHonorService
     event Func<HonorBallot, Task> HonorPhaseStarted;
     event Func<HonorBallot, Task> HonorBallotUpdated;
 
+    Task<HonorBallot> GetHonorBallotAsync();
     Task HonorPlayerAsync(PlayerHonor honor);
 }

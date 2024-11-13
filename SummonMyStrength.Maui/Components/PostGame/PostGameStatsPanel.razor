@@ -18,10 +18,11 @@
                 @foreach (var stat in _userSettings.PostGameGraphStatIds)
                 {
                     var statInfo = StatReaders.FirstOrDefault(x => x.Key == stat);
-                    var max = _stats.Teams.SelectMany(x => x.Players).Max(x => statInfo.Reader.Invoke(x));
 
                     if (statInfo != null)
                     {
+                        var max = _stats.Teams.SelectMany(x => x.Players).Max(x => statInfo.Reader.Invoke(x));
+
                         <MudTabPanel>
                             <TabContent>
                                 <img class="stat-icon" title="@statInfo.Name" src="@($"img/post-game-stats/{statInfo.IconPath}")">

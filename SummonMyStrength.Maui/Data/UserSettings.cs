@@ -15,12 +15,11 @@ public class UserSettings
     public bool AutoAcceptReadyChecks { get; set; }
 
     // Champ Select
-    public TradeResponse PickOrderTradeResponse { get; set; }
+    public TradeResponse PickOrderTradeResponse { get; set; } // TODO
 
-    public List<int> PreferredAramChampions { get; set; } = [];
+    public List<int> PreferredAramChampions { get; set; } = []; // TOOD
 
     public bool AutoPickBanChampions { get; set; }
-
     public Dictionary<ChampSelectAssignedPosition, List<ChampionPreference>> ChampionPreferences { get; set; } = new()
     {
         { ChampSelectAssignedPosition.Top, new() },
@@ -29,8 +28,6 @@ public class UserSettings
         { ChampSelectAssignedPosition.Bottom, new() },
         { ChampSelectAssignedPosition.Support, new() }
     };
-
-    public static Dictionary<ChampSelectAssignedPosition, List<HandsFreePreference>> HandsFreePreferences { get; set; }
 
     // Power Systems
     public Dictionary<int, RunePage[]> RunePages { get; set; } = [];
@@ -41,4 +38,7 @@ public class UserSettings
     // Post Game
     public bool SkipPostGameStatsScreen { get; set; }
     public List<string> PostGameGraphStatIds { get; set; } = ["DMG", "KDA", "CS"];
+
+    public bool AutoHonorPlayers { get; set; }
+    public bool AlwaysHonorFriends { get; set; } = true;
 }

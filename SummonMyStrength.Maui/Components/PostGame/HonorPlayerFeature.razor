@@ -1,0 +1,168 @@
+﻿@using SummonMyStrength.Api.ChampSelect
+@using SummonMyStrength.Api.PostGame.Honors
+@using SummonMyStrength.Api.PostGame.Stats
+@using SummonMyStrength.Api.Social
+@using SummonMyStrength.Maui.Data
+@implements IDisposable
+@inject IHonorService HonorService
+@inject IUserSettingsService UserSettingsService
+@inject IFriendService FriendService
+@inject IPostGameStatsService PostGameStatsService
+@inject IPlayerReportService PlayerReportService
+
+<ComponentSettings SectionName="Post-Game">
+    <HonorPlayerSettings />
+</ComponentSettings>
+
+@code {
+    private UserSettings _userSettings;
+    private HonorBallot _ballot;
+    private PostGameStats _postGameStats;
+    private string[] _reportedPlayerPuuids;
+
+    protected override async Task OnInitializedAsync()
+    {
+        HonorService.HonorPhaseStarted += HonorPhaseStartedAsync;
+        PostGameStatsService.PostGameStatsCreated += PostGameStatsPostedAsync;
+        PlayerReportService.InGameReportStatusUpdated += InGameReportStatusUpdated;
+
+        _userSettings = await UserSettingsService.GetSettingsAsync();
+    }
+
+    public void Dispose()
+    {
+        HonorService.HonorPhaseStarted -= HonorPhaseStartedAsync;
+        PostGameStatsService.PostGameStatsCreated -= PostGameStatsPostedAsync;
+        PlayerReportService.InGameReportStatusUpdated -= InGameReportStatusUpdated;
+    }
+
+    private Task InGameReportStatusUpdated(Dictionary<string, InGameReportStatus> reportStatus)
+    {
+        _reportedPlayerPuuids = reportStatus.Values.Where(x => x.IsPlayerMuted).Select(x => x.Puuid).ToArray();
+        return Task.CompletedTask;
+    }
+
+    private async Task HonorPhaseStartedAsync(HonorBallot ballot)
+    {
+        _ballot = ballot;
+
+        if (_ballot != null && _postGameStats != null)
+        {
+            await HonorPlayersAsync();
+        }
+    }
+
+    private async Task PostGameStatsPostedAsync(PostGameStats stats)
+    {
+        _postGameStats = stats;
+
+        if (_ballot != null && _postGameStats != null)
+        {
+            await HonorPlayersAsync();
+        }
+    }
+
+    private async Task HonorPlayersAsync()
+    {
+        var ballot = _ballot;
+        var postGameStats = _postGameStats;
+        var reportedPlayerPuuids = _reportedPlayerPuuids;
+
+        _ballot = null;
+        _postGameStats = null;
+        _reportedPlayerPuuids = null;
+
+        var friends = await FriendService.GetFriendsAsync();
+        var honorCharges = ballot.VotePool.Votes;
+        var honorTargets = new List<HonorEligibleChampion>();
+
+        if (_userSettings.AlwaysHonorFriends)
+        {
+            honorTargets.AddRange(
+                ballot.EligibleAllies.Concat(ballot.EligibleOpponents)
+                    .Where(x => friends.Any(y => y.SummonerId == x.SummonerId) && NotAlreadyHonored(ballot, x))
+                    .OrderByDescending(x => GetDamageDealt(postGameStats, x)));
+        }
+
+        if (postGameStats.LocalPlayer.DetectedTeamPosition == ChampSelectAssignedPosition.Support)
+        {
+            honorTargets.AddRange(
+                ballot.EligibleAllies
+                    .Where(x => GetDetectedPosition(postGameStats, x) == ChampSelectAssignedPosition.Bottom && NotReported(reportedPlayerPuuids, x) && NotAlreadyHonored(ballot, x)));
+        }
+        else if (postGameStats.LocalPlayer.DetectedTeamPosition == ChampSelectAssignedPosition.Bottom)
+        {
+            honorTargets.AddRange(
+                ballot.EligibleAllies
+                    .Where(x => GetDetectedPosition(postGameStats, x) == ChampSelectAssignedPosition.Support && NotReported(reportedPlayerPuuids, x) && NotAlreadyHonored(ballot, x)));
+        }
+
+        honorTargets.AddRange(
+            ballot.EligibleAllies
+                .Where(x => NotReported(reportedPlayerPuuids, x) && NotAlreadyHonored(ballot, x))
+                .Except(honorTargets)
+                .OrderByDescending(x => GetDamageDealt(postGameStats, x)));
+
+        honorTargets.AddRange(
+            ballot.EligibleOpponents
+                .Where(x => NotReported(reportedPlayerPuuids, x) && NotAlreadyHonored(ballot, x))
+                .OrderByDescending(x => GetDamageDealt(postGameStats, x)));
+
+        bool isFirst = true;
+
+        foreach (var target in honorTargets)
+        {
+            await HonorPlayerWithRetryAsync(ballot, target, isFirst);
+
+            isFirst = false;
+            honorCharges--;
+
+            if (honorCharges == 0)
+            {
+                return;
+            }
+        }
+    }
+
+    private async Task HonorPlayerWithRetryAsync(HonorBallot ballot, HonorEligibleChampion player, bool isFirst)
+    {
+        const int MaxAttempts = 5;
+        const int MaxAttemptsOnFirst = 10;
+
+        var maxAttempts = isFirst ? MaxAttemptsOnFirst : MaxAttempts;
+
+        for (var attempts = 0; attempts < maxAttempts; attempts++)
+        {
+            await HonorService.HonorPlayerAsync(new PlayerHonor { GameId = ballot.GameId, Puuid = player.Puuid, SummonerId = player.SummonerId });
+
+            var updatedBallot = await HonorService.GetHonorBallotAsync();
+
+            if (updatedBallot.HonoredPlayers.Any(x => x.RecipientPuuid == player.Puuid))
+            {
+                return;
+            }
+
+            await Task.Delay(100);
+        }
+    }
+
+    private static bool NotReported(string[] reportedPlayerPuuids, HonorEligibleChampion player)
+    {
+        return !reportedPlayerPuuids.Contains(player.Puuid);
+    }
+
+    private static int GetDamageDealt(PostGameStats stats, HonorEligibleChampion player)
+    {
+        return stats.Teams.SelectMany(x => x.Players).FirstOrDefault(x => x.SummonerId == player.SummonerId)?.TotalDamage ?? 0;
+    }
+
+    private static ChampSelectAssignedPosition? GetDetectedPosition(PostGameStats stats, HonorEligibleChampion player)
+    {
+        return stats.Teams.SelectMany(x => x.Players).FirstOrDefault(x => x.SummonerId == player.SummonerId)?.DetectedTeamPosition;
+    }
+
+    private static bool NotAlreadyHonored(HonorBallot ballot, HonorEligibleChampion player)
+    {
+        return ballot.HonoredPlayers.All(y => y.RecipientPuuid != player.Puuid);
+    }
+}

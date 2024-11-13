@@ -1,4 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using SummonMyStrength.Api.ChampSelect;
+using System;
+using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace SummonMyStrength.Api.PostGame.Stats;
 
@@ -9,6 +12,35 @@ public class PostGamePlayerStats
     public long SummonerId { get; set; }
     public string SummonerName { get; set; }
     public int[] Items { get; set; }
+
+    [JsonPropertyName("detectedTeamPosition")]
+    public string DetectedTeamPositionString { get; set; }
+
+    [JsonIgnore]
+    public ChampSelectAssignedPosition? DetectedTeamPosition
+    {
+        get => DetectedTeamPositionString?.ToLower() switch
+        {
+            null => null,
+            "" => null,
+            "utility" => ChampSelectAssignedPosition.Support,
+            "top" => ChampSelectAssignedPosition.Top,
+            "middle" => ChampSelectAssignedPosition.Middle,
+            "bottom" => ChampSelectAssignedPosition.Bottom,
+            "jungle" => ChampSelectAssignedPosition.Jungle,
+            _ => throw new NotSupportedException()
+        };
+        set => DetectedTeamPositionString = value switch
+        {
+            null => "",
+            ChampSelectAssignedPosition.Support => "utility",
+            ChampSelectAssignedPosition.Top => "top",
+            ChampSelectAssignedPosition.Middle => "middle",
+            ChampSelectAssignedPosition.Bottom => "bottom",
+            ChampSelectAssignedPosition.Jungle => "jungle",
+            _ => throw new NotSupportedException()
+        };
+    }
 
     public Dictionary<string, int> Stats { get; set; }
     public int Kills => Stats.TryGetValue("CHAMPIONS_KILLED", out int kills) ? kills : 0;

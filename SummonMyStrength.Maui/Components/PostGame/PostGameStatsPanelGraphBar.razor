@@ -1,8 +1,8 @@
 ﻿@using SummonMyStrength.Api.Collections.Champions
 @inject IChampionService ChampionService
 
-<div class="graph-bar @(Me ? "me" : "") @(Ally ? "ally" : "") @(Enemy ? "enemy" : "")" style="@($"width:{Value / Max * 100}%")">
-    <MudTooltip Placement="Placement.Start" Inline="false">
+<div class="graph-bar @(Me ? "me" : "") @(Ally ? "ally" : "") @(Enemy ? "enemy" : "")" style="@($"width:{Value / Math.Max(Max, 1) * 100}%")">
+    <MudTooltip Placement="Placement.Left" Inline="false">
         <TooltipContent>
             <div class="graph-tooltip">
                 <img class="icon" alt="@Champion.Name" src="@ChampionService.GetIconUrl(Champion)">

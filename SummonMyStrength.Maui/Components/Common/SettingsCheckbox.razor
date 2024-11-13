@@ -1,0 +1,22 @@
+﻿<MudGrid Justify="Justify.Center" Class="@Class" Style="align-items: center">
+    <MudItem xs="5">
+        <MudText Typo="Typo.subtitle2">@Label</MudText>
+    </MudItem>
+    <MudItem>
+        <MudSwitch T="bool" Color="Color.Success" Class="mr-0" Value="Value" ValueChanged="ValueChanged" />
+    </MudItem>
+</MudGrid>
+
+@code {
+    [Parameter]
+    public string Label { get; set; }
+
+    [Parameter]
+    public bool Value { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> ValueChanged { get; set; }
+
+    [Parameter]
+    public string Class { get; set; }
+}

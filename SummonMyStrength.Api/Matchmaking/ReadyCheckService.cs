@@ -52,6 +52,20 @@ internal class ReadyCheckService : IReadyCheckService, IDisposable
                     await ReadyCheckUpdated.InvokeAsync(_activeReadyCheck);
                 }
             });
+
+        _clientWebSocketConnector.AddMessageHandler<ReadyCheck>(
+            this,
+            MessageId.ReadyCheck,
+            MessageAction.Delete,
+            async x =>
+            {
+                if (_activeReadyCheck != null)
+                {
+                    var previousReadyCheck = _activeReadyCheck;
+                    _activeReadyCheck = null;
+                    await ReadyCheckDeleted.InvokeAsync(previousReadyCheck);
+                }
+            });
     }
 
     public void Dispose()

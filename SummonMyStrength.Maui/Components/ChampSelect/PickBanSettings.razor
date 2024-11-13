@@ -4,14 +4,7 @@
 
 @if (_userSettings != null)
 {
-    <MudGrid Justify="Justify.Center" Style="align-items: center">
-        <MudItem xs="5">
-            <MudText Typo="Typo.subtitle2">Auto Pick/Ban?</MudText>
-        </MudItem>
-        <MudItem>
-            <MudSwitch T="bool" Color="Color.Success" Class="mr-0" Value="_userSettings.AutoPickBanChampions" ValueChanged="CheckedChangedAsync" />
-        </MudItem>
-    </MudGrid>
+    <SettingsCheckbox Label="Auto Pick and Ban Champions?" Value="_userSettings.AutoPickBanChampions" ValueChanged="CheckedChangedAsync" />
 
     <MudTabs Class="mt-6" MinimumTabWidth="0">
         <MudTabPanel Text="Top">

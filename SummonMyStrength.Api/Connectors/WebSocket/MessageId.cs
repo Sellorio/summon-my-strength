@@ -26,5 +26,8 @@ public enum MessageId
     [MessagePath("/lol-champ-select/v1/session")]
     ChampSelectSession,
 
+    [MessagePath("/lol-chat/v1/player-mutes")]
+    PlayerMutes,
+
     UnregisteredMessageId
 }
