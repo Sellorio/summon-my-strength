@@ -4,6 +4,8 @@
 
 @if (_userSettings != null)
 {
+    <MudText Typo="Typo.subtitle1">Picking and Banning</MudText>
+
     <SettingsCheckbox Label="Auto Pick and Ban Champions?" Value="_userSettings.AutoPickBanChampions" ValueChanged="CheckedChangedAsync" />
 
     <MudTabs Class="mt-6" MinimumTabWidth="0">

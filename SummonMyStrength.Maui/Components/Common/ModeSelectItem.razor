@@ -1,0 +1,29 @@
+﻿@typeparam T
+
+<button class="mode-select-item @(Equals(Value, Parent.Value) ? "selected" : "")" disabled="@(Disabled || Parent.Disabled)" @onclick="() => Parent.SetValueAsync(Value)">
+    <div class="title">@Title</div>
+    <div class="description-wrapper">
+        <div class="description">@Description</div>
+        <div class="hidden-description">@LongestModeDescription</div>
+    </div>
+</button>
+
+@code {
+    [CascadingParameter]
+    public ModeSelect<T> Parent { get; set; }
+
+    [Parameter]
+    public string Title { get; set; }
+
+    [Parameter]
+    public string Description { get; set; }
+
+    [Parameter]
+    public string LongestModeDescription { get; set; }
+
+    [Parameter]
+    public T Value { get; set; }
+
+    [Parameter]
+    public bool Disabled { get; set; }
+}

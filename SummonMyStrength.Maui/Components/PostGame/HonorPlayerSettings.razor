@@ -1,10 +1,12 @@
 ﻿@using SummonMyStrength.Maui.Data
 @inject IUserSettingsService UserSettingsService
 
-<SettingsCheckbox Label="Auto Honor Players?" Value="_userSettings.AutoHonorPlayers" ValueChanged="SetAutoHonorPlayersAsync" />
-<SettingsCheckbox Label="Always Honor Friends?" Value="_userSettings.AlwaysHonorFriends" ValueChanged="SetAlwaysHonorFriendsAsync" Class="mt-4" />
+<MudText Typo="Typo.subtitle1">Honoring Players</MudText>
 
-<MudText Typo="Typo.h6">The Algorithm</MudText>
+<SettingsCheckbox Label="Auto Honor Players?" Value="_userSettings.AutoHonorPlayers" ValueChanged="SetAutoHonorPlayersAsync" />
+<SettingsCheckbox Label="Always Honor Friends?" Value="_userSettings.AlwaysHonorFriends" ValueChanged="SetAlwaysHonorFriendsAsync" Class="mb-3" />
+
+<MudText Typo="Typo.subtitle2">The Algorithm</MudText>
 <ol>
     <li>If checked, always honors friends first.</li>
     <li>Will not honor players that were reported while in-game.</li>

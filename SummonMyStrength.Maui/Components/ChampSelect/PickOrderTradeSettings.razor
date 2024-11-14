@@ -1,0 +1,30 @@
+﻿@using SummonMyStrength.Maui.Data
+@using SummonMyStrength.Maui.Services.ChampSelect
+@inject IUserSettingsService UserSettingsService
+
+@{
+    var downOnlyDescription = "Accepts trades if the other player is later than you in the pick order and rejects trades otherwise.";
+}
+
+<MudText Typo="Typo.subtitle1">Pick Order Trades</MudText>
+<ModeSelect T="TradeResponse" Value="_userSettings.PickOrderTradeResponse" ValueChanged="PickOrderTradeResponseChangedAsync">
+    <ModeSelectItem Value="TradeResponse.None" Title="None" Description="Take no action." LongestModeDescription="@downOnlyDescription" />
+    <ModeSelectItem Value="TradeResponse.Accept" Title="Accept" Description="Automatically accept all trades." LongestModeDescription="@downOnlyDescription" />
+    <ModeSelectItem Value="TradeResponse.Reject" Title="Reject" Description="Automatically reject all trades." LongestModeDescription="@downOnlyDescription" />
+    <ModeSelectItem Value="TradeResponse.DownOnly" Title="Down Only" Description="@downOnlyDescription" LongestModeDescription="@downOnlyDescription" />
+</ModeSelect>
+
+@code {
+    private UserSettings _userSettings;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _userSettings = await UserSettingsService.GetSettingsAsync();
+    }
+
+    private async Task PickOrderTradeResponseChangedAsync(TradeResponse tradeResponse)
+    {
+        _userSettings.PickOrderTradeResponse = tradeResponse;
+        await UserSettingsService.SaveSettingsAsync();
+    }
+}

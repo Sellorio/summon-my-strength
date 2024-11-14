@@ -3,9 +3,11 @@
 @using SummonMyStrength.Maui.Data
 @inject IUserSettingsService UserSettingsService
 
-<SettingsCheckbox Label="Skip Post-Game Stats Screen?" Value="_userSettings.SkipPostGameStatsScreen" ValueChanged="SkipPostGameStatsScreenChangedAsync" />
+<MudText Typo="Typo.subtitle1">Post-Game Stats</MudText>
 
-<MudText Typo="Typo.h6">Stat Tabs</MudText>
+<SettingsCheckbox Label="Skip Stats Screen?" Value="_userSettings.SkipPostGameStatsScreen" ValueChanged="SkipPostGameStatsScreenChangedAsync" />
+
+<MudText Typo="Typo.subtitle2">Stat Tabs</MudText>
 
 <div class="enabled-stat-tabs">
     @{
