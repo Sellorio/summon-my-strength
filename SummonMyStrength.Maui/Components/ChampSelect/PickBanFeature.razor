@@ -147,9 +147,10 @@
     {
         var banAction = _session.Actions.SelectMany(x => x).FirstOrDefault(x => x.ActorCellId == _session.LocalPlayerCellId && x.Type == ActionType.Ban);
 
-        if (banAction != null && banAction.ChampionId != null && banAction.ChampionId != 0)
+        if (banAction != null && banAction.ChampionId != null && banAction.ChampionId != 0 && !IsChampionDisbled(true, banAction.ChampionId.Value))
         {
             await BanChampionAsync(banAction.ChampionId.Value, lockIn);
+            await CheckBanSucceededAndRetryIfNotAsync(lockIn);
             return;
         }
 
@@ -168,7 +169,28 @@
             if (firstAvailableBanId != default)
             {
                 await BanChampionAsync(firstAvailableBanId, lockIn);
+                await CheckBanSucceededAndRetryIfNotAsync(lockIn);
             }
+        }
+    }
+
+    /// <remarks>
+    /// Handle the race condition where our ban pick was banned right before we submitted our ban.
+    /// In that scenario, we retry banning and recheck against our preferences.
+    /// </remarks>
+    private async Task CheckBanSucceededAndRetryIfNotAsync(bool wasLockIn)
+    {
+        if (!wasLockIn)
+        {
+            return;
+        }
+
+        var updatedSession = await ChampSelectSessionService.GetSessionAsync();
+        var banAction = updatedSession.Actions.SelectMany(x => x).FirstOrDefault(x => x.ActorCellId == _session.LocalPlayerCellId && x.Type == ActionType.Ban);
+
+        if (banAction.Completed != true)
+        {
+            await BanChampionFromPreferencesAsync(true);
         }
     }
 

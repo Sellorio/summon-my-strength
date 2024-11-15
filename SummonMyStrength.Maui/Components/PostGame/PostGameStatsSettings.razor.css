@@ -1,6 +1,6 @@
 .enabled-stat-tab {
     margin-top: -1px;
-    background: var(--mud-palette-background);
+    background: var(--component-background);
     border: 1px solid rgba(255,255,255,0.2);
 }
 

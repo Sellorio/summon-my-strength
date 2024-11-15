@@ -46,7 +46,13 @@ public partial class DragDropsite<T> : IDropsite, IDisposable
     /// <inheritdoc />
     public async Task OnDropAsync(object droppedObject)
     {
-        await OnDrop.InvokeAsync((T)droppedObject);
+        try
+        {
+            await OnDrop.InvokeAsync((T)droppedObject);
+        }
+        catch
+        {
+        }
     }
 
     /// <inheritdoc />

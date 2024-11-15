@@ -1,4 +1,11 @@
-﻿html, body, #app {
+﻿:root {
+    --component-background: rgb(38,39,46);
+    --component-border-color: rgb(100,100,100);
+    --component-selected-background: rgb(70,72,85);
+    --divider-border: 1px solid rgba(255,255,255,0.08);
+}
+
+html, body, #app {
     height: 100%;
 }
 

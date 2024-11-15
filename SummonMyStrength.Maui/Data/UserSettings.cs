@@ -17,6 +17,7 @@ public class UserSettings
     // Champ Select
     public TradeResponse PickOrderTradeResponse { get; set; } // TODO
 
+    public bool AutoTradeForPreferredAramChampions { get; set; } = true;
     public List<int> PreferredAramChampions { get; set; } = []; // TOOD
 
     public bool AutoPickBanChampions { get; set; }

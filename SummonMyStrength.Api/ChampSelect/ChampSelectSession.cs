@@ -12,7 +12,7 @@ public class ChampSelectSession
     public bool AllowRerolling { get; set; }
     public bool AllowSkinSelection { get; set; }
     public CampSelectBannedChampions Bans { get; set; }
-    public int[] BenchChampionIds { get; set; }
+    public BenchChampion[] BenchChampions { get; set; }
     public bool BenchEnabled { get; set; }
     public int BoostableSkinCount { get; set; }
     public ChampSelectChatRoomDetails ChatDetails { get; set; }

@@ -1,0 +1,88 @@
+﻿@using SummonMyStrength.Api.Collections.Champions
+@using SummonMyStrength.Maui.Components.Collections.Champions
+@using SummonMyStrength.Maui.Components.Common.DragDrop
+@using SummonMyStrength.Maui.Data
+@inject IUserSettingsService UserSettingsService
+@inject IDialogService DialogService
+@inject IChampionService ChampionService
+
+<MudText Typo="Typo.subtitle1">ARAM Champion Preferences</MudText>
+
+<SettingsCheckbox Label="Auto Trade for Preferred Champions?" Value="_userSettings.AutoTradeForPreferredAramChampions" ValueChanged="AutoTradeForPreferredAramChampionsChangedAsync" />
+
+<div class="preferred-aram-champs">
+    @foreach (var p in _userSettings.PreferredAramChampions)
+    {
+        var championId = p;
+        var champion = _champions.FirstOrDefault(x => x.Id == championId);
+
+        @if (champion != null)
+        {
+            <Draggable T="Champion" GroupKey="@("aram-preference")" Key="champion" OnDragCompleted="() => _userSettings.PreferredAramChampions.Remove(championId)" OnInsertDrop="x => InsertAramPreferenceAsync(championId, x.Id)">
+                <div class="preferred-aram-champ">
+                    <div class="champion-icon-wrapper">
+                        <img class="champion-icon" alt="@champion.Name" src="@ChampionService.GetIconUrl(champion)">
+                    </div>
+                    <span class="champion-name">@champion.Name</span>
+                    <MudIcon Class="drag-handle" Icon="@Icons.Material.Outlined.DragHandle" />
+                </div>
+            </Draggable>
+        }
+    }
+
+    <DragDropsite T="Champion" GroupKey="@("aram-preference")" OnDrop="x => AppendAramPreferenceAsync(x.Id)" />
+
+    <button class="add-preferred-aram-champ" @onclick="AddAramPreferenceAsync">
+        <MudIcon Icon="@Icons.Material.Outlined.Add" />
+    </button>
+</div>
+
+@code {
+    private UserSettings _userSettings;
+    private Champion[] _champions;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _userSettings = await UserSettingsService.GetSettingsAsync();
+        _champions = await ChampionService.GetChampionsAsync();
+    }
+
+    private async Task AutoTradeForPreferredAramChampionsChangedAsync(bool newValue)
+    {
+        _userSettings.AutoTradeForPreferredAramChampions = newValue;
+        await UserSettingsService.SaveSettingsAsync();
+    }
+
+    private async Task AddAramPreferenceAsync()
+    {
+        var existingChampionIds = _userSettings.PreferredAramChampions.ToArray();
+
+        var dialogParameters = new DialogParameters<ChampionSelectDialog>();
+        dialogParameters.Add(x => x.ExcludedChampionIds, existingChampionIds);
+        var dialogReference = await DialogService.ShowAsync<ChampionSelectDialog>(null, dialogParameters);
+        var dialogResult = await dialogReference.Result;
+
+        if (dialogResult.Canceled)
+        {
+            return;
+        }
+
+        var newChampionId = (int)dialogResult.Data;
+
+        _userSettings.PreferredAramChampions.Add(newChampionId);
+        await UserSettingsService.SaveSettingsAsync();
+    }
+
+    private async Task AppendAramPreferenceAsync(int championId)
+    {
+        _userSettings.PreferredAramChampions.Add(championId);
+        await UserSettingsService.SaveSettingsAsync();
+    }
+
+    private async Task InsertAramPreferenceAsync(int beforeChampionId, int championId)
+    {
+        var index = _userSettings.PreferredAramChampions.IndexOf(beforeChampionId);
+        _userSettings.PreferredAramChampions.Insert(index, championId);
+        await UserSettingsService.SaveSettingsAsync();
+    }
+}

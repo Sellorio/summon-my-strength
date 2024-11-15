@@ -1,0 +1,75 @@
+﻿@using SummonMyStrength.Api.ChampSelect
+@using SummonMyStrength.Maui.Data
+@inject IUserSettingsService UserSettingsService
+@inject IChampSelectSessionService ChampSelectSessionService
+@inject IChampSelectBenchService ChampSelectBenchService
+@inject IChampSelectChampionTradeService ChampSelectChampionTradeService
+
+<ComponentSettings SectionName="Champ-Select">
+    <AramPreferenceSettings />
+</ComponentSettings>
+
+@code {
+    private UserSettings _userSettings;
+    private List<(long CellId, int ChampionId)> _attemptedTrades;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _userSettings = await UserSettingsService.GetSettingsAsync();
+
+        ChampSelectSessionService.ChampSelectSessionCreated += SessionChangedAsync;
+        ChampSelectSessionService.ChampSelectSessionUpdated += SessionChangedAsync;
+    }
+
+    private async Task SessionCreatedAsync(ChampSelectSession session)
+    {
+        _attemptedTrades = [];
+        await SessionChangedAsync(session);
+    }
+
+    private async Task SessionChangedAsync(ChampSelectSession session)
+    {
+        _attemptedTrades ??= [];
+
+        if (session.AllowRerolling && session.BenchEnabled)
+        {
+            var currentlyTrading = session.Trades.Any(x => x.State is ChampSelectTradeState.Sent or ChampSelectTradeState.Received);
+
+            if (currentlyTrading)
+            {
+                return;
+            }
+
+            var currentRank = GetAramChampionRank(session.Player.ChampionId);
+            var highestRankBenchChamp = session.BenchChampions.Select(x => new { Rank = GetAramChampionRank(x.ChampionId), ChampionId = x.ChampionId }).OrderBy(x => x.Rank).LastOrDefault();
+            var highestRankAllyChamp =
+                session.MyTeam
+                    .Select(x => new { Rank = GetAramChampionRank(x.ChampionId), CellId = x.CellId, ChampionId = x.ChampionId })
+                    .Where(x => x.CellId != session.Player.CellId)                                                             // exclude me
+                    .Where(x => !_attemptedTrades.Contains((x.CellId, x.ChampionId)))                                       // only attempt to trade once per ally
+                    .Where(x => session.Trades.First(y => y.CellId == x.CellId).State == ChampSelectTradeState.Available)   // exclude allies that rejected trade requests
+                    .OrderBy(x => x.Rank)
+                    .LastOrDefault();
+
+            if (highestRankBenchChamp != null && highestRankBenchChamp.Rank > highestRankAllyChamp.Rank && highestRankBenchChamp.Rank > currentRank)
+            {
+                // How are bench cooldowns handled? I don't see data supporting it in the API
+                await ChampSelectBenchService.SwapWithBenchAsync(highestRankBenchChamp.ChampionId);
+            }
+            else if (highestRankAllyChamp.Rank > currentRank)
+            {
+                // trade id is generated when loading into champ select and is unique for each Player -> Player combination.
+                // all entries in the Trades list are created immediately and states are set to Avaiable.
+                var tradeId = session.Trades.First(x => x.CellId == highestRankAllyChamp.CellId).Id;
+                _attemptedTrades.Add((highestRankAllyChamp.CellId, highestRankAllyChamp.ChampionId));
+                await ChampSelectChampionTradeService.RequestTradeAsync(tradeId);
+            }
+        }
+    }
+
+    private int GetAramChampionRank(int championId)
+    {
+        var index = _userSettings.PreferredAramChampions.IndexOf(championId);
+        return index == -1 ? 0 : (1000 - index);
+    }
+}

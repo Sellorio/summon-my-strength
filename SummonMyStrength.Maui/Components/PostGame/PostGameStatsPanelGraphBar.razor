@@ -2,15 +2,11 @@
 @inject IChampionService ChampionService
 
 <div class="graph-bar @(Me ? "me" : "") @(Ally ? "ally" : "") @(Enemy ? "enemy" : "")" style="@($"width:{Value / Math.Max(Max, 1) * 100}%")">
-    <MudTooltip Placement="Placement.Left" Inline="false">
-        <TooltipContent>
-            <div class="graph-tooltip">
-                <img class="icon" alt="@Champion.Name" src="@ChampionService.GetIconUrl(Champion)">
-                <div class="summoner-name">@SummonerName</div>
-                <div class="value">@Math.Round(Value, 2)</div>
-            </div>
-        </TooltipContent>
-    </MudTooltip>
+    <div class="graph-tooltip">
+        <img class="icon" alt="@Champion.Name" src="@ChampionService.GetIconUrl(Champion)">
+        <div class="summoner-name">@SummonerName</div>
+        <div class="value">@Math.Round(Value, 2)</div>
+    </div>
 </div>
 
 @code {

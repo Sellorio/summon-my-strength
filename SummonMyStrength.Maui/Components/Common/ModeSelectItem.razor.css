@@ -2,14 +2,14 @@
     display: block;
     margin: 5px 0;
     padding: 6px 12px;
-    border: 1px solid #666;
-    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--component-border-color);
+    background: var(--component-background);
     text-align: left;
 }
 
 .mode-select-item.selected {
     border-color: #999;
-    background: rgba(255,255,255,0.08);
+    background: var(--component-selected-background);
 }
 
 .mode-select-item .title {
