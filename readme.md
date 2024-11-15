@@ -4,6 +4,12 @@
 
 This is a lightweight windows app that uses the local League of Legends Client API to add some significant quality of life improvements to the pre and post game.
 
+## Prerequisites
+
+Try running the app without installing these as you may already have them or they may not be required (prerequisites list is based on old posts that may be out of date).
+
+* [WinAppSdk](https://docs.microsoft.com/windows/apps/windows-app-sdk/downloads)
+
 ## Features
 
 ### Pre-Game
@@ -88,3 +94,12 @@ game seconds after the last one ended.
 ![Post-Game Stats Settings](readme-imgs/settings-post-game-stats.png)
 
 ![Post-Game Stats Options](readme-imgs/settings-post-game-stats-dropdown.png)
+
+## Settings
+
+Settings are stored in My Documents (or equivalent) under `My Games\Summon My Strength`.
+
+```
+C:\Users\USERNAME\Documents\My Games\Summon My Strength
+C:\Users\USERNAME\OneDrive\Documents\My Games\Summon My Strength
+```

@@ -21,7 +21,7 @@
 		<EnableDefaultCssItems>false</EnableDefaultCssItems>
 
 		<!-- Display name -->
-		<ApplicationTitle>SummonMyStrength.Maui</ApplicationTitle>
+		<ApplicationTitle>Summon My Strength</ApplicationTitle>
 
 		<!-- App Identifier -->
 		<ApplicationId>com.companyname.summonmystrength.maui</ApplicationId>
