@@ -6,6 +6,8 @@ namespace SummonMyStrength.Api.Connectors;
 
 public interface ILeagueConnectionSettingsProvider
 {
+    void ClearCache();
+
     /// <summary>
     /// Attempts to read the settings into the <see cref="Settings"/> property.
     /// </summary>

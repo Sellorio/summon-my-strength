@@ -61,6 +61,17 @@ internal partial class LeagueConnectionSettingsProvider : ILeagueConnectionSetti
         }
     }
 
+    public void ClearCache()
+    {
+        _settings = null;
+
+        if (_leagueOfLegendsClientProcess != null)
+        {
+            _leagueOfLegendsClientProcess.Exited -= OnLeagueOfLegendsClientProcessExited;
+            _leagueOfLegendsClientProcess = null;
+        }
+    }
+
     public void Dispose()
     {
         if (_leagueOfLegendsClientProcess != null)

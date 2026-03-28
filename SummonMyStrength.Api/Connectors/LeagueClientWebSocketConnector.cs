@@ -10,13 +10,18 @@ using System.Threading;
 using System.Collections.Generic;
 using SummonMyStrength.Api.Connectors.WebSocket;
 using System.Linq;
-using System.IO;
+
+#pragma warning disable CA1416 // Validate platform compatibility
 
 namespace SummonMyStrength.Api.Connectors;
 
-internal class LeagueClientWebSocketConnector : ILeagueClientWebSocketConnector
+internal class LeagueClientWebSocketConnector(ILeagueConnectionSettingsProvider connectionSettingsProvider) : ILeagueClientWebSocketConnector
 {
     private static readonly JsonSerializerOptions _jsonOptions;
+
+#if DEBUG
+    private static readonly JsonSerializerOptions _prettyPrintJsonOptions = new() { WriteIndented = true };
+#endif
 
     static LeagueClientWebSocketConnector()
     {
@@ -28,8 +33,6 @@ internal class LeagueClientWebSocketConnector : ILeagueClientWebSocketConnector
         _jsonOptions.Converters.Add(new JsonStringEnumConverter());
     }
 
-    private readonly ILeagueConnectionSettingsProvider _connectionSettingsProvider;
-    private readonly ILeagueClientApiConnector _clientApi;
     private readonly List<LeagueMessageHandler> _messageHandlers = new();
     private ClientWebSocket _socket;
     private CancellationTokenSource _cancellationTokenSource;
@@ -39,12 +42,6 @@ internal class LeagueClientWebSocketConnector : ILeagueClientWebSocketConnector
     public event Func<Task> Disconnected;
     public event Func<Task> Connected;
     public event Func<Exception, Task> MessageHandlerFailure;
-
-    public LeagueClientWebSocketConnector(ILeagueConnectionSettingsProvider connectionSettingsProvider, ILeagueClientApiConnector clientApi)
-    {
-        _connectionSettingsProvider = connectionSettingsProvider;
-        _clientApi = clientApi;
-    }
 
     public async Task<bool> WaitForConnectionAsync()
     {
@@ -109,7 +106,7 @@ internal class LeagueClientWebSocketConnector : ILeagueClientWebSocketConnector
 
         LeagueConnectionSettings settings = null;
 
-        if (!await _connectionSettingsProvider.TryReadAsync(x => settings = x))
+        if (!await connectionSettingsProvider.TryReadAsync(x => settings = x))
         {
             return;
         }
@@ -127,8 +124,8 @@ internal class LeagueClientWebSocketConnector : ILeagueClientWebSocketConnector
             await _socket.ConnectAsync(new Uri("wss://127.0.0.1:" + settings.PortNumber + "/"), CancellationToken.None);
 
             _ = Task.Factory.StartNew(
-            () => ReceiveWebSocketMessagesAsync(socketConnection, _cancellationTokenSource.Token),
-            CancellationToken.None,
+                () => ReceiveWebSocketMessagesAsync(socketConnection, _cancellationTokenSource.Token),
+                CancellationToken.None,
                 TaskCreationOptions.LongRunning,
                 TaskScheduler.Default);
 
@@ -140,6 +137,7 @@ internal class LeagueClientWebSocketConnector : ILeagueClientWebSocketConnector
         catch (WebSocketException ex) when (ex.Message.Contains("Unable to connect"))
         {
             _socket = null;
+            _cancellationTokenSource.Cancel();
             _cancellationTokenSource = null;
         }
         catch (Exception e)
@@ -164,13 +162,13 @@ internal class LeagueClientWebSocketConnector : ILeagueClientWebSocketConnector
             }
             catch (WebSocketException ex) when (ex.Message == "The remote party closed the WebSocket connection without completing the close handshake.")
             {
-                await HandleDisconnectAsync(cancellationToken);
+                await HandleDisconnectAsync();
                 return;
             }
 
             if (receivedMessage.MessageType == WebSocketMessageType.Close)
             {
-                await HandleDisconnectAsync(cancellationToken);
+                await HandleDisconnectAsync();
                 return;
             }
             else if (receivedMessage.MessageType == WebSocketMessageType.Text)
@@ -194,14 +192,19 @@ internal class LeagueClientWebSocketConnector : ILeagueClientWebSocketConnector
         }
     }
 
-    private async Task HandleDisconnectAsync(CancellationToken cancellationToken)
+    private async Task HandleDisconnectAsync()
     {
         _socket = null;
+        _cancellationTokenSource.Cancel();
+        _cancellationTokenSource = null;
+
+        IsConnected = false;
+        connectionSettingsProvider.ClearCache();
 
         await Disconnected?.InvokeAsync();
 
-        await Task.Delay(2000, cancellationToken);
-        await InternalConnectAsync(cancellationToken);
+        await Task.Delay(2000);
+        await InternalConnectAsync(default);
     }
 
     private async Task HandleMessageAsync(string content)
@@ -226,6 +229,20 @@ internal class LeagueClientWebSocketConnector : ILeagueClientWebSocketConnector
         var messageId = LeagueMessageHelper.ParseMessageId(uri);
         var messageAction = LeagueMessageHelper.ParseAction(eventType);
         var deserializedPayloadInstances = new Dictionary<Type, object>();
+
+#if DEBUG
+        if (uri != "/lol-player-report-sender/v1/in-game-reports")
+        {
+            var logPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "SummonMyStrength", "Logs", "WebSocketMessages" + DateTime.Today.ToString("yyyyMMdd") + ".log");
+            try
+            {
+                System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(logPath));
+                using System.IO.StreamWriter writer = System.IO.File.AppendText(logPath);
+                writer.Write($"{JsonSerializer.Serialize(new { action = eventType, uri = uri + " ", body = eventBody })},\r\n");
+            }
+            catch { }
+        }
+#endif
 
         foreach (var handler in _messageHandlers.Where(x => x.MessageId == messageId && (x.Actions & messageAction) != 0))
         {

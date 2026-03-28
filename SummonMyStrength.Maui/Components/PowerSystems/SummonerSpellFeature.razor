@@ -29,36 +29,32 @@
 
         if (session != null)
         {
-            _selectedChampionId = GetSelectedChampionId(session);
-            _position = session.Player?.Position ?? ChampSelectAssignedPosition.Middle;
-
-            if (_selectedChampionId != null)
-            {
-                await SetSummonerSpellsAsync(_selectedChampionId.Value, _position);
-            }
+            await SetSummonerSpellsForSessionAsync(session);
         }
     }
 
     private async Task ChampSelectSessionCreated(ChampSelectSession session)
     {
-        // in aram, champ would be selected immediately
-        _selectedChampionId = GetSelectedChampionId(session);
         _position = session.Player?.Position ?? ChampSelectAssignedPosition.Middle;
 
-        if (_selectedChampionId != null)
-        {
-            await SetSummonerSpellsAsync(_selectedChampionId.Value, _position);
-        }
+        // in aram, champ would be selected immediately
+        await SetSummonerSpellsForSessionAsync(session);
     }
 
     private async Task ChampSelectSessionUpdated(ChampSelectSession session)
     {
+        await SetSummonerSpellsForSessionAsync(session);
+    }
+
+    private async Task SetSummonerSpellsForSessionAsync(ChampSelectSession session)
+    {
+        var position = session.AllowRerolling && session.BenchEnabled ? AssignedPositionOrDefault.ARAM : (AssignedPositionOrDefault)_position;
         var newSelectedChampionId = GetSelectedChampionId(session);
 
         if (newSelectedChampionId != null && newSelectedChampionId != _selectedChampionId)
         {
             _selectedChampionId = newSelectedChampionId;
-            await SetSummonerSpellsAsync(_selectedChampionId.Value, _position);
+            await SetSummonerSpellsAsync(_selectedChampionId.Value, position);
         }
     }
 
@@ -82,19 +78,19 @@
     {
         if (_userSettings.AutoSetSummonerSpells && _selectedChampionId != null)
         {
-            await SetSummonerSpellsAsync(_selectedChampionId.Value, _position);
+            await SetSummonerSpellsAsync(_selectedChampionId.Value, (AssignedPositionOrDefault)_position);
         }
     }
 
-    private async Task SetSummonerSpellsAsync(int championId, ChampSelectAssignedPosition position)
+    private async Task SetSummonerSpellsAsync(int championId, AssignedPositionOrDefault position)
     {
         if (_userSettings.SummonerSpellPreferences.TryGetValue(championId, out var preferences))
         {
-            if (!preferences.TryGetValue((AssignedPositionOrDefault)position, out var spellIds))
+            if (!preferences.TryGetValue(position, out var spellIds))
             {
                 spellIds = preferences[AssignedPositionOrDefault.Default];
 
-                if (position == ChampSelectAssignedPosition.Jungle && spellIds.Spell1 != SpellId.Smite && spellIds.Spell2 != SpellId.Smite)
+                if (position == AssignedPositionOrDefault.Jungle && spellIds.Spell1 != SpellId.Smite && spellIds.Spell2 != SpellId.Smite)
                 {
                     if (spellIds.Spell2 is SpellId.Flash or SpellId.Ghost)
                     {

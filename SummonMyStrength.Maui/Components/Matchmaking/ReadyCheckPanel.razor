@@ -25,7 +25,7 @@
             <MudGrid Justify="Justify.Center" Spacing="0">
                 <MudItem Style="position: relative">
                     <div class="progress-circle">
-                        <MudProgressCircular Color="@statusColor" Size="Size.Large" Min="0" Max="13" Value="(DateTime.Now - _startedAt).TotalSeconds" StrokeWidth="6" />
+                        <MudProgressCircular Color="@statusColor" Size="Size.Large" Min="0" Max="13" Value="_currentTime.Value" StrokeWidth="6" />
                     </div>
                     <div class="progress-text">
                         Ready<br>
@@ -38,20 +38,13 @@
 }
 
 @code {
-    private System.Timers.Timer _timer;
-    private DateTime _startedAt = DateTime.Now;
+    private Timer _timer;
     private SummonMyStrength.Api.Matchmaking.ReadyCheck _readyCheck;
+    private double? _currentTime;
 
     protected override void OnInitialized()
     {
-        _timer = new System.Timers.Timer
-        {
-            AutoReset = true,
-            Enabled = true,
-            Interval = 10
-        };
-
-        _timer.Elapsed += (s, e) => InvokeAsync(StateHasChanged);
+        _timer = new Timer(async x => await TimerTickAsync(), null, Timeout.Infinite, Timeout.Infinite);
 
         ReadyCheckService.ReadyCheckCreated -= ReadyCheckCreated;
         ReadyCheckService.ReadyCheckUpdated += ReadyCheckUpdated;
@@ -66,23 +59,34 @@
         ReadyCheckService.ReadyCheckDeleted -= ReadyCheckDeleted;
     }
 
+    private async Task TimerTickAsync()
+    {
+        if (_currentTime != null)
+        {
+            _currentTime += 0.05;
+        }
+
+        await InvokeAsync(StateHasChanged);
+    }
+
     private async Task ReadyCheckCreated(SummonMyStrength.Api.Matchmaking.ReadyCheck readyCheck)
     {
         _readyCheck = readyCheck;
-        _timer.Start();
+        _currentTime = _readyCheck.Timer;
+        _timer.Change(50, 50);
 
         await InvokeAsync(StateHasChanged);
     }
 
     private async Task ReadyCheckUpdated(SummonMyStrength.Api.Matchmaking.ReadyCheck readyCheck)
     {
-        // if we are far off the timer (> 1s) update our local timer
-        if (Math.Abs(readyCheck.Timer - (DateTime.Now - _startedAt).TotalSeconds) > 1.0)
-        {
-            _startedAt = DateTime.Now.AddSeconds(-readyCheck.Timer);
-        }
-
         _readyCheck = readyCheck;
+
+        if (_currentTime == null)
+        {
+            _currentTime = _readyCheck.Timer + 0.025;
+            _timer.Change(50, 50);
+        }
 
         await InvokeAsync(StateHasChanged);
     }
@@ -90,7 +94,8 @@
     private async Task ReadyCheckDeleted(SummonMyStrength.Api.Matchmaking.ReadyCheck readyCheck)
     {
         _readyCheck = null;
-        _timer.Stop();
+        _currentTime = null;
+        _timer.Change(Timeout.Infinite, Timeout.Infinite);
 
         await InvokeAsync(StateHasChanged);
     }

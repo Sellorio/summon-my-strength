@@ -29,5 +29,8 @@ public enum MessageId
     [MessagePath("/lol-chat/v1/player-mutes")]
     PlayerMutes,
 
+    [MessagePath("/lol-ranked/v1/current-lp-change-notification")]
+    CurrentLpChange,
+
     UnregisteredMessageId
 }

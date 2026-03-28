@@ -1,4 +1,5 @@
 ﻿@using SummonMyStrength.Api.Collections.Champions
+@using SummonMyStrength.Api.PowerSystems.SummonerSpells
 @using SummonMyStrength.Maui.Components.Collections.Champions
 @using SummonMyStrength.Maui.Data
 @inject IChampionService ChampionService
@@ -60,22 +61,24 @@
 @code {
     private static readonly Dictionary<AssignedPositionOrDefault, int> _defaultSpell1 = new()
     {
-        { AssignedPositionOrDefault.Top, 4 /* Flash */ },
-        { AssignedPositionOrDefault.Jungle, 4 /* Flash */ },
-        { AssignedPositionOrDefault.Middle, 4 /* Flash */ },
-        { AssignedPositionOrDefault.Bottom, 4 /* Flash */ },
-        { AssignedPositionOrDefault.Support, 4 /* Flash */ },
-        { AssignedPositionOrDefault.Default, 4 /* Flash */ }
+        { AssignedPositionOrDefault.Top, SpellId.Flash },
+        { AssignedPositionOrDefault.Jungle, SpellId.Flash },
+        { AssignedPositionOrDefault.Middle, SpellId.Flash },
+        { AssignedPositionOrDefault.Bottom, SpellId.Flash },
+        { AssignedPositionOrDefault.Support, SpellId.Flash },
+        { AssignedPositionOrDefault.ARAM, SpellId.Flash },
+        { AssignedPositionOrDefault.Default, SpellId.Flash }
     };
 
     private static readonly Dictionary<AssignedPositionOrDefault, int> _defaultSpell2 = new()
     {
-        { AssignedPositionOrDefault.Top, 12 /* Teleport */ },
-        { AssignedPositionOrDefault.Jungle, 11 /* Smite */ },
-        { AssignedPositionOrDefault.Middle, 14 /* Ignite */ },
-        { AssignedPositionOrDefault.Bottom, 21 /* Barrier */ },
-        { AssignedPositionOrDefault.Support, 3 /* Exhaust */ },
-        { AssignedPositionOrDefault.Default, 14 /* Ignite */ }
+        { AssignedPositionOrDefault.Top, SpellId.Teleport },
+        { AssignedPositionOrDefault.Jungle, SpellId.Smite },
+        { AssignedPositionOrDefault.Middle, SpellId.Ignite },
+        { AssignedPositionOrDefault.Bottom, SpellId.Barrier },
+        { AssignedPositionOrDefault.Support, SpellId.Exhaust },
+        { AssignedPositionOrDefault.ARAM, SpellId.Snowball },
+        { AssignedPositionOrDefault.Default, SpellId.Ignite }
     };
 
     private Champion[] _champions;

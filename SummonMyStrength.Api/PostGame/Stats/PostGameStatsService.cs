@@ -11,6 +11,7 @@ internal class PostGameStatsService : IPostGameStatsService, IDisposable
 
     public event Func<Task> EnteredPostGameStatsPhase;
     public event Func<PostGameStats, Task> PostGameStatsCreated;
+    public event Func<UpdatedLpInfo, Task> CurrentLpChanged;
 
     public PostGameStatsService(ILeagueClientWebSocketConnector clientWebSocketConnector)
     {
@@ -33,6 +34,18 @@ internal class PostGameStatsService : IPostGameStatsService, IDisposable
             MessageId.EndOfGameStats,
             MessageAction.Create,
             x => PostGameStatsCreated.InvokeAsync(x));
+
+        _clientWebSocketConnector.AddMessageHandler<UpdatedLpInfo>(
+            this,
+            MessageId.CurrentLpChange,
+            MessageAction.Update,
+            async x =>
+            {
+                if (x != null)
+                {
+                    await CurrentLpChanged.InvokeAsync(x);
+                }
+            });
     }
 
     public void Dispose()

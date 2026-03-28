@@ -9,7 +9,9 @@
         <MudItem Class="position">
             @if (Position != AssignedPositionOrDefault.Default)
             {
-                <img class="position-icon" alt="@Position" src="@($"img/positions/icon-position-{Position.ToString().ToLower()}-blue.png")">
+                <MudTooltip Text="@Position.ToString()">
+                    <img class="position-icon" alt="@Position" src="@($"img/positions/icon-position-{Position.ToString().ToLower()}-blue.png")">
+                </MudTooltip>
             }
             else
             {

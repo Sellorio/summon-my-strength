@@ -6,6 +6,9 @@ public class PostGameStats
 {
     public long GameId { get; set; }
 
+    [JsonPropertyName("ranked")]
+    public bool IsRanked { get; set; }
+
     [JsonPropertyName("ipEarned")]
     public int BlueEssenceGained { get; set; }
 

@@ -7,5 +7,6 @@ public enum AssignedPositionOrDefault
     Middle,
     Support,
     Bottom,
+    ARAM,
     Default
 }

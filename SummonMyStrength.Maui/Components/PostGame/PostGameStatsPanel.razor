@@ -6,53 +6,61 @@
 @inject IPostGameStatsService PostGameStatsService
 @inject IUserSettingsService UserSettingsService;
 
-@if (_stats != null && _userSettings.PostGameGraphStatIds.Count > 0)
+@if (_stats != null && _userSettings.PostGameGraphStatIds.Count > 0 || _updatedLpInfo != null)
 {
     <section class="post-game-stats">
         <header>
             <span>Post-Game Stats</span>
-            <MudIconButton Icon="@Icons.Material.Outlined.Close" OnClick="() => _stats = null" />
+            <MudIconButton Icon="@Icons.Material.Outlined.Close" OnClick="() => { _stats = null; _updatedLpInfo = null; }" />
         </header>
         <content>
-            <MudTabs MinimumTabWidth="0">
-                @foreach (var stat in _userSettings.PostGameGraphStatIds)
-                {
-                    var statInfo = StatReaders.FirstOrDefault(x => x.Key == stat);
+            @if (_updatedLpInfo != null)
+            {
+                <text>LP: @(_updatedLpInfo.LpDelta > 0 ? "+" : "")@(_updatedLpInfo.LpDelta)</text>
+            }
 
-                    if (statInfo != null)
+            @if (_stats != null && _userSettings.PostGameGraphStatIds.Count > 0)
+            {
+                <MudTabs MinimumTabWidth="0">
+                    @foreach (var stat in _userSettings.PostGameGraphStatIds)
                     {
-                        var max = _stats.Teams.SelectMany(x => x.Players).Max(x => statInfo.Reader.Invoke(x));
+                        var statInfo = StatReaders.FirstOrDefault(x => x.Key == stat);
 
-                        <MudTabPanel>
-                            <TabContent>
-                                <img class="stat-icon" title="@statInfo.Name" src="@($"img/post-game-stats/{statInfo.IconPath}")">
-                            </TabContent>
-                            <ChildContent>
-                                <div class="graph">
-                                    <div class="graph-max">@decimal.Round(max, 2)</div>
+                        if (statInfo != null)
+                        {
+                            var max = _stats.Teams.SelectMany(x => x.Players).Max(x => statInfo.Reader.Invoke(x));
 
-                                    @foreach (var ally in _myTeamStats)
-                                    {
-                                        var champion = _champions.First(x => x.Id == ally.ChampionId);
-                                        var isMe = ally.SummonerId == _stats.LocalPlayer.SummonerId;
+                            <MudTabPanel>
+                                <TabContent>
+                                    <img class="stat-icon" title="@statInfo.Name" src="@($"img/post-game-stats/{statInfo.IconPath}")">
+                                </TabContent>
+                                <ChildContent>
+                                    <div class="graph">
+                                        <div class="graph-max">@decimal.Round(max, 2)</div>
 
-                                        <PostGameStatsPanelGraphBar Champion="champion" SummonerName="@ally.SummonerName" Value="statInfo.Reader.Invoke(ally)" Max="max" Me="isMe" Ally="!isMe" />
-                                    }
+                                        @foreach (var ally in _myTeamStats)
+                                        {
+                                            var champion = _champions.First(x => x.Id == ally.ChampionId);
+                                            var isMe = ally.SummonerId == _stats.LocalPlayer.SummonerId;
 
-                                    <hr class="team-separator">
+                                            <PostGameStatsPanelGraphBar Champion="champion" SummonerName="@ally.SummonerName" Value="statInfo.Reader.Invoke(ally)" Max="max" Me="isMe" Ally="!isMe" />
+                                        }
 
-                                    @foreach (var enemy in _enemyTeamStats)
-                                    {
-                                        var champion = _champions.First(x => x.Id == enemy.ChampionId);
+                                        <hr class="team-separator">
 
-                                        <PostGameStatsPanelGraphBar Champion="champion" SummonerName="@enemy.SummonerName" Value="statInfo.Reader.Invoke(enemy)" Max="max" Enemy />
-                                    }
-                                </div>
-                            </ChildContent>
-                        </MudTabPanel>
+                                        @foreach (var enemy in _enemyTeamStats)
+                                        {
+                                            var champion = _champions.First(x => x.Id == enemy.ChampionId);
+
+                                            <PostGameStatsPanelGraphBar Champion="champion" SummonerName="@enemy.SummonerName" Value="statInfo.Reader.Invoke(enemy)" Max="max" Enemy />
+                                        }
+                                    </div>
+                                </ChildContent>
+                            </MudTabPanel>
+                        }
                     }
-                }
-            </MudTabs>
+                </MudTabs>
+            }
         </content>
     </section>
 }
@@ -63,6 +71,7 @@
     private PostGameStats _stats;
     private PostGamePlayerStats[] _myTeamStats;
     private PostGamePlayerStats[] _enemyTeamStats;
+    private UpdatedLpInfo _updatedLpInfo;
 
     [Parameter]
     public PostGameStatInfo[] StatReaders { get; set; }
@@ -72,11 +81,13 @@
         _champions = await ChampionService.GetChampionsAsync();
         _userSettings = await UserSettingsService.GetSettingsAsync();
         PostGameStatsService.PostGameStatsCreated += PostGameStatsCreated;
+        PostGameStatsService.CurrentLpChanged += CurrentLpChanged;
     }
 
     public void Dispose()
     {
         PostGameStatsService.PostGameStatsCreated -= PostGameStatsCreated;
+        PostGameStatsService.CurrentLpChanged -= CurrentLpChanged;
     }
 
     private async Task PostGameStatsCreated(PostGameStats stats)
@@ -85,6 +96,12 @@
         _myTeamStats = stats.Teams.First(x => x.Players.Any(y => y.SummonerId == stats.LocalPlayer.SummonerId)).Players;
         _enemyTeamStats = stats.Teams.First(x => x.Players != _myTeamStats).Players;
 
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task CurrentLpChanged(UpdatedLpInfo info)
+    {
+        _updatedLpInfo = info;
         await InvokeAsync(StateHasChanged);
     }
 }

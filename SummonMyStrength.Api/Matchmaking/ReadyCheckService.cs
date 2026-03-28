@@ -24,7 +24,7 @@ internal class ReadyCheckService : IReadyCheckService, IDisposable
         _clientWebSocketConnector.AddMessageHandler<ReadyCheck>(
             this,
             MessageId.ReadyCheck,
-            MessageAction.Update,
+            MessageAction.Create | MessageAction.Update,
             async x =>
             {
                 if (x.State is ReadyCheckState.EveryoneReady or ReadyCheckState.Error) // ready check ended

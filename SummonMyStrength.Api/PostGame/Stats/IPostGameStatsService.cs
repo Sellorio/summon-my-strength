@@ -7,4 +7,5 @@ public interface IPostGameStatsService
 {
     event Func<Task> EnteredPostGameStatsPhase;
     event Func<PostGameStats, Task> PostGameStatsCreated;
+    event Func<UpdatedLpInfo, Task> CurrentLpChanged;
 }

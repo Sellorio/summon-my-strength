@@ -8,7 +8,7 @@
 
 <MudText Typo="Typo.subtitle1">ARAM Champion Preferences</MudText>
 
-<SettingsCheckbox Label="Auto Trade for Preferred Champions?" Value="_userSettings.AutoTradeForPreferredAramChampions" ValueChanged="AutoTradeForPreferredAramChampionsChangedAsync" />
+<SettingsCheckbox Label="Auto Trade?" Value="_userSettings.AutoTradeForPreferredAramChampions" ValueChanged="AutoTradeForPreferredAramChampionsChangedAsync" />
 
 <div class="preferred-aram-champs">
     @foreach (var p in _userSettings.PreferredAramChampions)
@@ -24,6 +24,7 @@
                         <img class="champion-icon" alt="@champion.Name" src="@ChampionService.GetIconUrl(champion)">
                     </div>
                     <span class="champion-name">@champion.Name</span>
+                    <MudIconButton Class="remove-button" Icon="@Icons.Material.Outlined.Close" OnClick="() => RemovePreferenceAsync(championId)" />
                     <MudIcon Class="drag-handle" Icon="@Icons.Material.Outlined.DragHandle" />
                 </div>
             </Draggable>
@@ -83,6 +84,12 @@
     {
         var index = _userSettings.PreferredAramChampions.IndexOf(beforeChampionId);
         _userSettings.PreferredAramChampions.Insert(index, championId);
+        await UserSettingsService.SaveSettingsAsync();
+    }
+
+    private async Task RemovePreferenceAsync(int championId)
+    {
+        _userSettings.PreferredAramChampions.Remove(championId);
         await UserSettingsService.SaveSettingsAsync();
     }
 }

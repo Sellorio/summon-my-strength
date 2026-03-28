@@ -103,6 +103,7 @@
                 await ProcessHandsFreeActionsAsync(false, false);
                 break;
             case ChampSelectPhase.Picking:
+                await ProcessHandsFreeActionsAsync(false, false);
                 _timer.Change(5000, 1000);
                 break;
             default:
