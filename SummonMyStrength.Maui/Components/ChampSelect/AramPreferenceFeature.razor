@@ -31,7 +31,7 @@
     {
         _attemptedTrades ??= [];
 
-        if (session.AllowRerolling && session.BenchEnabled)
+        if (session.AllowRerolling && session.BenchEnabled && _userSettings.AutoTradeForPreferredAramChampions)
         {
             var currentlyTrading = session.Trades.Any(x => x.State is ChampSelectTradeState.Sent or ChampSelectTradeState.Received);
 
