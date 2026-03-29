@@ -69,6 +69,12 @@ public partial class Draggable<T>
     [Parameter]
     public bool DisableDropsite { get; set; }
 
+    /// <summary>
+    /// Gets or sets an optional CSS selector that limits where dragging can start from within the wrapped content.
+    /// </summary>
+    [Parameter]
+    public string DragHandleSelector { get; set; }
+
     private async Task StartDragAsync()
     {
         int width = await JS.InvokeAsync<int>("wyGetDragWidth", ChildRef);

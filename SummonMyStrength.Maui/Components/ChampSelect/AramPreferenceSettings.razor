@@ -18,56 +18,54 @@
             var groupIndex = index;
             var group = _userSettings.PreferredAramChampionGroups[groupIndex];
 
-            <div class="preferred-aram-group">
-                <div class="preferred-aram-group-header">
-                    <MudText Typo="Typo.subtitle2">Priority @(groupIndex + 1)</MudText>
-                    <div class="preferred-aram-group-actions">
-                        <MudIconButton Icon="@Icons.Material.Outlined.Add" OnClick="() => AddChampionToGroupAsync(groupIndex)" />
-                        <MudIconButton Icon="@Icons.Material.Outlined.Delete" OnClick="() => RemoveGroupAsync(groupIndex)" />
-                    </div>
-                </div>
+            <Draggable T="AramChampionPreferenceGroup" GroupKey="@AramPreferenceGroupListKey" Key="@group" OnDragCompleted="() => RemoveGroup(group)" OnInsertDrop="x => InsertGroupAsync(group, x)" DragHandleSelector=".preferred-aram-group-drag-handle">
+                <div class="preferred-aram-group">
+                    <div class="preferred-aram-group-header">
+                        <div class="preferred-aram-group-drag-handle">
+                            <MudText Typo="Typo.subtitle2">Priority @(groupIndex + 1)</MudText>
+                        </div>
 
-                <div class="preferred-aram-champs">
-                    @foreach (var championId in group.ChampionIds)
-                    {
-                        if (!_championsById.TryGetValue(championId, out var champion))
+                        <div class="preferred-aram-group-actions">
+                            <MudIconButton Icon="@Icons.Material.Outlined.Add" OnClick="() => AddChampionToGroupAsync(groupIndex)" />
+                            <MudIconButton Icon="@Icons.Material.Outlined.Delete" OnClick="() => RemoveGroupAsync(groupIndex)" />
+                        </div>
+                    </div>
+
+                    <div class="preferred-aram-champs">
+                        @foreach (var championId in group.ChampionIds)
                         {
-                            continue;
+                            if (!_championsById.TryGetValue(championId, out var champion))
+                            {
+                                continue;
+                            }
+
+                            var dragItem = new AramPreferenceDragItem(championId, groupIndex);
+
+                            <Draggable T="AramPreferenceDragItem" GroupKey="@AramPreferenceGroupKey" Key="@dragItem" OnDragCompleted="() => RemoveChampionFromGroup(groupIndex, championId)" OnInsertDrop="x => InsertChampionIntoGroupAsync(groupIndex, championId, x)">
+                                <div class="preferred-aram-champ">
+                                    <div class="champion-icon-wrapper">
+                                        <img class="champion-icon" alt="@champion.Name" src="@ChampionService.GetIconUrl(champion)">
+                                    </div>
+                                    <span class="champion-name">@champion.Name</span>
+                                    <MudIconButton Class="remove-button" Icon="@Icons.Material.Outlined.Close" OnClick="() => RemoveChampionFromGroupAsync(groupIndex, championId)" />
+                                </div>
+                            </Draggable>
                         }
 
-                        var dragItem = new AramPreferenceDragItem(championId, groupIndex);
-
-                        <Draggable T="AramPreferenceDragItem" GroupKey="@AramPreferenceGroupKey" Key="@dragItem" OnDragCompleted="() => RemoveChampionFromGroup(groupIndex, championId)" OnInsertDrop="x => InsertChampionIntoGroupAsync(groupIndex, championId, x)">
-                            <div class="preferred-aram-champ">
-                                <div class="champion-icon-wrapper">
-                                    <img class="champion-icon" alt="@champion.Name" src="@ChampionService.GetIconUrl(champion)">
-                                </div>
-                                <span class="champion-name">@champion.Name</span>
-                                <MudIconButton Class="remove-button" Icon="@Icons.Material.Outlined.Close" OnClick="() => RemoveChampionFromGroupAsync(groupIndex, championId)" />
-                                <MudIcon Class="drag-handle" Icon="@Icons.Material.Outlined.DragHandle" />
-                            </div>
-                        </Draggable>
-                    }
-
-                    <DragDropsite T="AramPreferenceDragItem" GroupKey="@AramPreferenceGroupKey" OnDrop="x => AppendChampionToGroupAsync(groupIndex, x)">
-                        <ChildContent Context="dropPreview">
-                            <div class="preferred-aram-group-dropzone">
-                                @if (group.ChampionIds.Count == 0)
-                                {
-                                    <div class="preferred-aram-empty-group">Drop a champion here or add one to this priority.</div>
-                                }
-                                else
-                                {
-                                    <div class="preferred-aram-drop-hint">Drop here to move a champion into this priority.</div>
-                                }
-
-                                @dropPreview
-                            </div>
-                        </ChildContent>
-                    </DragDropsite>
+                        <DragDropsite T="AramPreferenceDragItem" GroupKey="@AramPreferenceGroupKey" OnDrop="x => AppendChampionToGroupAsync(groupIndex, x)" />
+                    </div>
                 </div>
-            </div>
+            </Draggable>
         }
+
+        <DragDropsite T="AramChampionPreferenceGroup" GroupKey="@AramPreferenceGroupListKey" OnDrop="AppendGroupAsync">
+            <ChildContent Context="dropPreview">
+                <div class="preferred-aram-group-list-dropzone">
+                    <div class="preferred-aram-drop-hint">Drop here to move a priority group to the end.</div>
+                    @dropPreview
+                </div>
+            </ChildContent>
+        </DragDropsite>
 
         <button class="add-preferred-aram-group" @onclick="AddGroupAsync">
             <MudIcon Icon="@Icons.Material.Outlined.Add" />
@@ -79,6 +77,7 @@
     private UserSettings _userSettings;
     private IReadOnlyDictionary<int, Champion> _championsById = new Dictionary<int, Champion>();
     private const string AramPreferenceGroupKey = "aram-preference";
+    private const string AramPreferenceGroupListKey = "aram-preference-group";
 
     protected override async Task OnInitializedAsync()
     {
@@ -166,6 +165,35 @@
 
         _userSettings.PreferredAramChampionGroups.RemoveAt(groupIndex);
         await UserSettingsService.SaveSettingsAsync();
+    }
+
+    private async Task InsertGroupAsync(AramChampionPreferenceGroup beforeGroup, AramChampionPreferenceGroup group)
+    {
+        RemoveGroup(group);
+
+        var index = _userSettings.PreferredAramChampionGroups.IndexOf(beforeGroup);
+        if (index == -1)
+        {
+            _userSettings.PreferredAramChampionGroups.Add(group);
+        }
+        else
+        {
+            _userSettings.PreferredAramChampionGroups.Insert(index, group);
+        }
+
+        await UserSettingsService.SaveSettingsAsync();
+    }
+
+    private async Task AppendGroupAsync(AramChampionPreferenceGroup group)
+    {
+        RemoveGroup(group);
+        _userSettings.PreferredAramChampionGroups.Add(group);
+        await UserSettingsService.SaveSettingsAsync();
+    }
+
+    private void RemoveGroup(AramChampionPreferenceGroup group)
+    {
+        _userSettings.PreferredAramChampionGroups.Remove(group);
     }
 
     private void RemoveChampionFromGroup(int groupIndex, int championId)

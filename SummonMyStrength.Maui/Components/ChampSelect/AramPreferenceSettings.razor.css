@@ -12,9 +12,16 @@
 
 .preferred-aram-group-header {
     display: flex;
-    justify-content: space-between;
     align-items: center;
     margin-bottom: 10px;
+}
+
+.preferred-aram-group-drag-handle {
+    flex-grow: 1;
+}
+
+.preferred-aram-group-handle-icon {
+    opacity: 0.45;
 }
 
 .preferred-aram-group-actions {
@@ -51,11 +58,6 @@
     flex-grow: 1;
 }
 
-.preferred-aram-champ ::deep .drag-handle {
-    opacity: 0.3;
-    margin-right: 10px;
-}
-
 .preferred-aram-empty-group {
     padding: 12px;
     color: rgba(255,255,255,0.65);
@@ -64,6 +66,10 @@
 
 .preferred-aram-group-dropzone {
     margin-top: 8px;
+}
+
+.preferred-aram-group-list-dropzone {
+    margin-top: -7px;
 }
 
 .preferred-aram-drop-hint {

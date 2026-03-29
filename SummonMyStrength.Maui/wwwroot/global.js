@@ -104,6 +104,14 @@ function wyPrepareForDrag(element, event) {
         return;
     }
 
+    const handleSelector = element.dataset.dragHandleSelector;
+
+    if (handleSelector) {
+        if (!(event.target instanceof Element) || event.target.closest(handleSelector) === null) {
+            return;
+        }
+    }
+
     const rect = element.getBoundingClientRect();
 
     element.relativeMouseX = event.clientX - rect.left;

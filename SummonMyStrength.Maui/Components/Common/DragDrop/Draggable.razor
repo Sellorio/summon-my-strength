@@ -7,7 +7,7 @@
     <DragDropsite @ref="LocalDropsite" T="T" GroupKey="GroupKey" OnDrop="OnDropAsync" />
 }
 
-<div onmousedown="@(Disabled ? "" : $"wyPrepareForDrag(this, event)")">
+<div data-drag-handle-selector="@DragHandleSelector" onmousedown="@(Disabled ? "" : $"wyPrepareForDrag(this, event)")">
     <div @ref="ChildRef" class="child-content @(Disabled ? "disabled" : "")">
         @ChildContent
     </div>
