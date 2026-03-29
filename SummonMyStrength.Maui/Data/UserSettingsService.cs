@@ -21,11 +21,17 @@ internal class UserSettingsService : IUserSettingsService
                     File.Exists(_settingsPath)
                         ? JsonSerializer.Deserialize<UserSettings>(text)
                         : new UserSettings();
+
+                _settings ??= new UserSettings();
+                _settings.NormalizeAramChampionPreferenceGroups();
             }
             catch
             {
 
             }
+
+            _settings ??= new UserSettings();
+            _settings.NormalizeAramChampionPreferenceGroups();
 
             _semaphore.Release();
         }
@@ -47,11 +53,17 @@ internal class UserSettingsService : IUserSettingsService
                     File.Exists(_settingsPath)
                         ? JsonSerializer.Deserialize<UserSettings>(text)
                         : new UserSettings();
+
+                _settings ??= new UserSettings();
+                _settings.NormalizeAramChampionPreferenceGroups();
             }
             catch
             {
 
             }
+
+            _settings ??= new UserSettings();
+            _settings.NormalizeAramChampionPreferenceGroups();
 
             _semaphore.Release();
         }
@@ -62,6 +74,7 @@ internal class UserSettingsService : IUserSettingsService
     public async Task SaveSettingsAsync()
     {
         await GetSettingsAsync();
+        _settings.NormalizeAramChampionPreferenceGroups();
         Directory.CreateDirectory(Path.GetDirectoryName(_settingsPath));
         await File.WriteAllTextAsync(_settingsPath, JsonSerializer.Serialize(_settings));
     }

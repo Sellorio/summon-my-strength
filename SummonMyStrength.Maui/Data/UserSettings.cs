@@ -1,4 +1,5 @@
-﻿using SummonMyStrength.Api.ChampSelect;
+﻿using System.Text.Json.Serialization;
+using SummonMyStrength.Api.ChampSelect;
 using SummonMyStrength.Api.PowerSystems.Runes;
 using SummonMyStrength.Maui.Services.ChampSelect;
 
@@ -18,7 +19,25 @@ public class UserSettings
     public TradeResponse PickOrderTradeResponse { get; set; } // TODO
 
     public bool AutoTradeForPreferredAramChampions { get; set; } = true;
-    public List<int> PreferredAramChampions { get; set; } = []; // TOOD
+    public List<AramChampionPreferenceGroup> PreferredAramChampionGroups { get; set; } = [];
+
+    [Obsolete("Use PreferredAramChampionGroups instead")]
+    [JsonPropertyName("PreferredAramChampions")]
+    public List<int> LegacyPreferredAramChampions
+    {
+        set
+        {
+            if (PreferredAramChampionGroups.Count > 0 || value == null)
+            {
+                return;
+            }
+
+            PreferredAramChampionGroups =
+                value
+                    .Select(championId => new AramChampionPreferenceGroup { ChampionIds = [championId] })
+                    .ToList();
+        }
+    }
 
     public bool AutoPickBanChampions { get; set; }
     public Dictionary<ChampSelectAssignedPosition, List<ChampionPreference>> ChampionPreferences { get; set; } = new()
@@ -42,4 +61,21 @@ public class UserSettings
 
     public bool AutoHonorPlayers { get; set; }
     public bool AlwaysHonorFriends { get; set; } = true;
+
+    public void NormalizeAramChampionPreferenceGroups()
+    {
+        PreferredAramChampionGroups ??= [];
+
+        HashSet<int> seenChampionIds = [];
+        PreferredAramChampionGroups =
+            PreferredAramChampionGroups
+                .Where(group => group != null)
+                .Select(group => new AramChampionPreferenceGroup
+                {
+                    ChampionIds = (group.ChampionIds ?? [])
+                        .Where(seenChampionIds.Add)
+                        .ToList()
+                })
+                .ToList();
+    }
 }

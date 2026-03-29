@@ -1,3 +1,30 @@
+.preferred-aram-groups {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.preferred-aram-group {
+    padding: 12px;
+    border: 1px solid var(--component-border-color);
+    background: var(--component-background);
+}
+
+.preferred-aram-group-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.preferred-aram-group-actions {
+    display: flex;
+}
+
+.preferred-aram-champs {
+    min-height: 42px;
+}
+
 .preferred-aram-champ {
     display: flex;
     align-items: center;
@@ -29,8 +56,23 @@
     margin-right: 10px;
 }
 
-.add-preferred-aram-champ {
-    margin-top: 15px;
+.preferred-aram-empty-group {
+    padding: 12px;
+    color: rgba(255,255,255,0.65);
+    border: 1px dashed var(--component-border-color);
+}
+
+.preferred-aram-group-dropzone {
+    margin-top: 8px;
+}
+
+.preferred-aram-drop-hint {
+    padding: 8px 12px;
+    color: rgba(255,255,255,0.45);
+    border: 1px dashed rgba(255,255,255,0.1);
+}
+
+.add-preferred-aram-group {
     width: 50px;
     height: 50px;
     background: rgba(0,0,0,0.1);
@@ -38,6 +80,6 @@
     transition: background 0.05s linear;
 }
 
-.add-preferred-aram-champ:hover {
+.add-preferred-aram-group:hover {
     background: rgba(0,0,0,0.03);
 }

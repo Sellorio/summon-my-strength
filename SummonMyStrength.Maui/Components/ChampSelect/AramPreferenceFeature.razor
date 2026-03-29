@@ -51,12 +51,15 @@
                     .OrderBy(x => x.Rank)
                     .LastOrDefault();
 
-            if (highestRankBenchChamp != null && highestRankBenchChamp.Rank > highestRankAllyChamp.Rank && highestRankBenchChamp.Rank > currentRank)
+            var highestRankAlly = highestRankAllyChamp?.Rank ?? 0;
+            var highestRankBench = highestRankBenchChamp?.Rank ?? 0;
+
+            if (highestRankBenchChamp != null && highestRankBench > highestRankAlly && highestRankBench > currentRank)
             {
                 // How are bench cooldowns handled? I don't see data supporting it in the API
                 await ChampSelectBenchService.SwapWithBenchAsync(highestRankBenchChamp.ChampionId);
             }
-            else if (highestRankAllyChamp.Rank > currentRank)
+            else if (highestRankAllyChamp != null && highestRankAlly > currentRank)
             {
                 // trade id is generated when loading into champ select and is unique for each Player -> Player combination.
                 // all entries in the Trades list are created immediately and states are set to Avaiable.
@@ -69,7 +72,7 @@
 
     private int GetAramChampionRank(int championId)
     {
-        var index = _userSettings.PreferredAramChampions.IndexOf(championId);
-        return index == -1 ? 0 : (1000 - index);
+        var index = _userSettings.PreferredAramChampionGroups.FindIndex(x => x.ChampionIds.Contains(championId));
+        return index == -1 ? 0 : (_userSettings.PreferredAramChampionGroups.Count - index);
     }
 }
