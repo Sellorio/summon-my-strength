@@ -19,7 +19,7 @@ internal class ChampSelectPickOrderSwapService : IChampSelectPickOrderSwapServic
     /// <returns>The task for the action.</returns>
     public async Task AcceptSwapAsync(long id)
     {
-        await _clientApiConnector.PostAsync($"lol-champ-select/v1/session/swaps/{id}/accept", null);
+        await _clientApiConnector.PostAsync($"lol-champ-select/v1/session/position-swaps/{id}/accept", null);
     }
 
     /// <summary>
@@ -29,6 +29,6 @@ internal class ChampSelectPickOrderSwapService : IChampSelectPickOrderSwapServic
     /// <returns>The task for the action.</returns>
     public async Task DeclineSwapAsync(long id)
     {
-        await _clientApiConnector.PostAsync($"lol-champ-select/v1/session/swaps/{id}/decline", null);
+        await _clientApiConnector.PostAsync($"lol-champ-select/v1/session/position-swaps/{id}/decline", null);
     }
 }

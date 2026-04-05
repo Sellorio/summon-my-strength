@@ -26,7 +26,7 @@
             return;
         }
 
-        var receivedSwapRequest = session.PickOrderSwaps.FirstOrDefault(x => x.State == ChampSelectTradeState.Received);
+        var receivedSwapRequest = (session.PickOrderSwaps ?? []).FirstOrDefault(x => x.State == ChampSelectTradeState.Received);
 
         if (receivedSwapRequest == null)
         {
@@ -45,7 +45,15 @@
                 break;
             case TradeResponse.DownOnly:
                 // the order in which players appear in the MyTeam list is also the pick order
-                var isAfterMeInPickOrder = session.MyTeam.Where(x => x.CellId == receivedSwapRequest.CellId || x.CellId == session.LocalPlayerCellId).First().CellId == session.LocalPlayerCellId;
+                var myPickOrder = Array.FindIndex(session.MyTeam ?? [], x => x.CellId == session.LocalPlayerCellId);
+                var otherPlayerPickOrder = Array.FindIndex(session.MyTeam ?? [], x => x.CellId == receivedSwapRequest.CellId);
+
+                if (myPickOrder == -1 || otherPlayerPickOrder == -1)
+                {
+                    return;
+                }
+
+                var isAfterMeInPickOrder = otherPlayerPickOrder > myPickOrder;
 
                 if (isAfterMeInPickOrder)
                 {

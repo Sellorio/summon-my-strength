@@ -24,8 +24,10 @@ internal class ChampSelectSessionAbstractor : IChampSelectSessionAbstractor
             Position = null;
             return;
         }
-        
-        Position ??= session.Player.Position;
+
+        var player = session.Player;
+
+        Position ??= player?.Position;
 
         var phase = GetChampSelectPhase(session);
 
@@ -98,6 +100,11 @@ internal class ChampSelectSessionAbstractor : IChampSelectSessionAbstractor
 
     private int? GetSelectedChampionId(ChampSelectSession session)
     {
+        if (session.Player == null)
+        {
+            return null;
+        }
+
         var championId = session.Player.ChampionId == default ? session.Player.ChampionPickIntent : session.Player.ChampionId;
 
         if (championId == 0)

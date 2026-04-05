@@ -17,7 +17,7 @@
     {
         _userSettings = await UserSettingsService.GetSettingsAsync();
 
-        ChampSelectSessionService.ChampSelectSessionCreated += SessionChangedAsync;
+        ChampSelectSessionService.ChampSelectSessionCreated += SessionCreatedAsync;
         ChampSelectSessionService.ChampSelectSessionUpdated += SessionChangedAsync;
     }
 
@@ -31,9 +31,15 @@
     {
         _attemptedTrades ??= [];
 
+        if (session?.Player == null)
+        {
+            return;
+        }
+
         if (session.AllowRerolling && session.BenchEnabled && _userSettings.AutoTradeForPreferredAramChampions)
         {
-            var currentlyTrading = session.Trades.Any(x => x.State is ChampSelectTradeState.Sent or ChampSelectTradeState.Received);
+            var trades = session.Trades ?? [];
+            var currentlyTrading = trades.Any(x => x.State is ChampSelectTradeState.Sent or ChampSelectTradeState.Received);
 
             if (currentlyTrading)
             {
@@ -41,13 +47,22 @@
             }
 
             var currentRank = GetAramChampionRank(session.Player.ChampionId);
-            var highestRankBenchChamp = session.BenchChampions.Select(x => new { Rank = GetAramChampionRank(x.ChampionId), ChampionId = x.ChampionId }).OrderBy(x => x.Rank).LastOrDefault();
+            var availableTradesByCellId = trades
+                .Where(x => x.State == ChampSelectTradeState.Available)
+                .GroupBy(x => x.CellId)
+                .ToDictionary(x => x.Key, x => x.First());
+
+            var highestRankBenchChamp = (session.BenchChampions ?? [])
+                .Select(x => new { Rank = GetAramChampionRank(x.ChampionId), ChampionId = x.ChampionId })
+                .OrderBy(x => x.Rank)
+                .LastOrDefault();
+
             var highestRankAllyChamp =
-                session.MyTeam
+                (session.MyTeam ?? [])
                     .Select(x => new { Rank = GetAramChampionRank(x.ChampionId), CellId = x.CellId, ChampionId = x.ChampionId })
                     .Where(x => x.CellId != session.Player.CellId)                                                             // exclude me
                     .Where(x => !_attemptedTrades.Contains((x.CellId, x.ChampionId)))                                       // only attempt to trade once per ally
-                    .Where(x => session.Trades.First(y => y.CellId == x.CellId).State == ChampSelectTradeState.Available)   // exclude allies that rejected trade requests
+                    .Where(x => availableTradesByCellId.ContainsKey(x.CellId))                                               // exclude allies that rejected trade requests
                     .OrderBy(x => x.Rank)
                     .LastOrDefault();
 
@@ -63,7 +78,7 @@
             {
                 // trade id is generated when loading into champ select and is unique for each Player -> Player combination.
                 // all entries in the Trades list are created immediately and states are set to Avaiable.
-                var tradeId = session.Trades.First(x => x.CellId == highestRankAllyChamp.CellId).Id;
+                var tradeId = availableTradesByCellId[highestRankAllyChamp.CellId].Id;
                 _attemptedTrades.Add((highestRankAllyChamp.CellId, highestRankAllyChamp.ChampionId));
                 await ChampSelectChampionTradeService.RequestTradeAsync(tradeId);
             }

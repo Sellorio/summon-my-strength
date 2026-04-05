@@ -5,14 +5,14 @@ namespace SummonMyStrength.Api.ChampSelect;
 
 public class ChampSelectSession
 {
-    public ChampSelectAction[][] Actions { get; set; }
+    public ChampSelectAction[][] Actions { get; set; } = [];
     public bool AllowBattleBoost { get; set; }
     public bool AllowDuplicatePicks { get; set; }
     public bool AllowLockedEvents { get; set; }
     public bool AllowRerolling { get; set; }
     public bool AllowSkinSelection { get; set; }
     public CampSelectBannedChampions Bans { get; set; }
-    public BenchChampion[] BenchChampions { get; set; }
+    public BenchChampion[] BenchChampions { get; set; } = [];
     public bool BenchEnabled { get; set; }
     public int BoostableSkinCount { get; set; }
     public ChampSelectChatRoomDetails ChatDetails { get; set; }
@@ -25,19 +25,35 @@ public class ChampSelectSession
     public bool IsSpectating { get; set; }
     public int LocalPlayerCellId { get; set; }
     public int LockedEventIndex { get; set; }
-    public ChampSelectPlayerSelection[] MyTeam { get; set; }
+    public ChampSelectPlayerSelection[] MyTeam { get; set; } = [];
     public int RecoveryCounter { get; set; }
     public int RerollsRemaining { get; set; }
     public bool SkipChampionSelect { get; set; }
-    public ChampSelectPlayerSelection[] TheirTeam { get; set; }
+    public ChampSelectPlayerSelection[] TheirTeam { get; set; } = [];
     public ChampSelectTimer Timer { get; set; }
-    public ChampSelectTradeContract[] Trades { get; set; }
-    public ChampSelectTradeContract[] PickOrderSwaps { get; set; }
+    public ChampSelectTradeContract[] Trades { get; set; } = [];
+
+    private ChampSelectTradeContract[] _pickOrderSwaps = [];
+    private ChampSelectTradeContract[] _positionSwaps = [];
+
+    [JsonPropertyName("pickOrderSwaps")]
+    public ChampSelectTradeContract[] PickOrderSwaps
+    {
+        get => _pickOrderSwaps.Length > 0 ? _pickOrderSwaps : _positionSwaps;
+        set => _pickOrderSwaps = value ?? [];
+    }
+
+    [JsonPropertyName("positionSwaps")]
+    public ChampSelectTradeContract[] PositionSwaps
+    {
+        get => _positionSwaps;
+        set => _positionSwaps = value ?? [];
+    }
 
     private ChampSelectPlayerSelection _player;
 
     [JsonIgnore]
-    public ChampSelectPlayerSelection Player => _player ??= MyTeam.First(x => x.CellId == LocalPlayerCellId);
+    public ChampSelectPlayerSelection Player => _player ??= MyTeam.FirstOrDefault(x => x.CellId == LocalPlayerCellId);
 
     [JsonIgnore]
     public bool IsPickingIntent =>
