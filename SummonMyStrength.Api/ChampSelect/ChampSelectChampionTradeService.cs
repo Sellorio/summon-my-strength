@@ -19,7 +19,7 @@ internal class ChampSelectChampionTradeService : IChampSelectChampionTradeServic
     /// </remarks>
     public async Task<ChampSelectTradeContract> RequestTradeAsync(long id)
     {
-        return await _clientApiConnector.PostAsync<ChampSelectTradeContract>($"lol-champ-select/v1/session/trades/{id}/request", null);
+        return await _clientApiConnector.PostAsync<ChampSelectTradeContract>($"lol-champ-select/v1/session/champion-swaps/{id}/request", null);
     }
 
     /// <summary>
@@ -28,7 +28,7 @@ internal class ChampSelectChampionTradeService : IChampSelectChampionTradeServic
     /// <returns>The details of the trade.</returns>
     public async Task<OngoingTrade> GetOngoingTradeAsync()
     {
-        return await _clientApiConnector.PostAsync<OngoingTrade>($"lol-champ-select/v1/ongoing-trade", null);
+        return await _clientApiConnector.GetAsync<OngoingTrade>("lol-champ-select/v1/ongoing-champion-swap");
     }
 
     /// <summary>
@@ -38,7 +38,7 @@ internal class ChampSelectChampionTradeService : IChampSelectChampionTradeServic
     /// <returns>The task for the action.</returns>
     public async Task AcceptTradeAsync(long id)
     {
-        await _clientApiConnector.PostAsync($"lol-champ-select/v1/session/trades/{id}/accept", null);
+        await _clientApiConnector.PostAsync($"lol-champ-select/v1/session/champion-swaps/{id}/accept", null);
     }
 
     /// <summary>
@@ -48,6 +48,6 @@ internal class ChampSelectChampionTradeService : IChampSelectChampionTradeServic
     /// <returns>The task for the action.</returns>
     public async Task DeclineTradeAsync(long id)
     {
-        await _clientApiConnector.PostAsync($"lol-champ-select/v1/session/trades/{id}/decline", null);
+        await _clientApiConnector.PostAsync($"lol-champ-select/v1/session/champion-swaps/{id}/decline", null);
     }
 }

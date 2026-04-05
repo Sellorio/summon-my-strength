@@ -12,6 +12,11 @@
 @code {
     private UserSettings _userSettings;
     private List<(long CellId, int ChampionId)> _attemptedTrades;
+    private int? _lastChampionId;
+    private HashSet<int> _lastBenchChampionIds = [];
+    private int? _pendingAutoBenchSwapChampionId;
+    private int? _blockedReverseBenchChampionId;
+    private int? _blockedReverseWhileChampionId;
 
     protected override async Task OnInitializedAsync()
     {
@@ -24,6 +29,11 @@
     private async Task SessionCreatedAsync(ChampSelectSession session)
     {
         _attemptedTrades = [];
+        _lastChampionId = null;
+        _lastBenchChampionIds = [];
+        _pendingAutoBenchSwapChampionId = null;
+        _blockedReverseBenchChampionId = null;
+        _blockedReverseWhileChampionId = null;
         await SessionChangedAsync(session);
     }
 
@@ -31,29 +41,33 @@
     {
         _attemptedTrades ??= [];
 
+        TrackManualBenchSwap(session);
+
         if (session?.Player == null)
         {
             return;
         }
 
-        if (session.AllowRerolling && session.BenchEnabled && _userSettings.AutoTradeForPreferredAramChampions)
+        if (session.BenchEnabled && _userSettings.AutoTradeForPreferredAramChampions)
         {
-            var trades = session.Trades ?? [];
-            var currentlyTrading = trades.Any(x => x.State is ChampSelectTradeState.Sent or ChampSelectTradeState.Received);
+            var ongoingTrade = await ChampSelectChampionTradeService.GetOngoingTradeAsync();
+            var currentlyTrading = ongoingTrade?.State is ChampSelectTradeState.Sent or ChampSelectTradeState.Received;
 
             if (currentlyTrading)
             {
                 return;
             }
 
+            var trades = session.Trades ?? [];
             var currentRank = GetAramChampionRank(session.Player.ChampionId);
             var availableTradesByCellId = trades
                 .Where(x => x.State == ChampSelectTradeState.Available)
                 .GroupBy(x => x.CellId)
-                .ToDictionary(x => x.Key, x => x.First());
+                .ToDictionary(x => x.Key, x => x.OrderBy(y => y.Id).ToArray());
 
             var highestRankBenchChamp = (session.BenchChampions ?? [])
                 .Select(x => new { Rank = GetAramChampionRank(x.ChampionId), ChampionId = x.ChampionId })
+                .Where(x => x.ChampionId != _blockedReverseBenchChampionId || session.Player.ChampionId != _blockedReverseWhileChampionId)
                 .OrderBy(x => x.Rank)
                 .LastOrDefault();
 
@@ -72,17 +86,65 @@
             if (highestRankBenchChamp != null && highestRankBench > highestRankAlly && highestRankBench > currentRank)
             {
                 // How are bench cooldowns handled? I don't see data supporting it in the API
+                _pendingAutoBenchSwapChampionId = highestRankBenchChamp.ChampionId;
                 await ChampSelectBenchService.SwapWithBenchAsync(highestRankBenchChamp.ChampionId);
             }
             else if (highestRankAllyChamp != null && highestRankAlly > currentRank)
             {
                 // trade id is generated when loading into champ select and is unique for each Player -> Player combination.
                 // all entries in the Trades list are created immediately and states are set to Avaiable.
-                var tradeId = availableTradesByCellId[highestRankAllyChamp.CellId].Id;
-                _attemptedTrades.Add((highestRankAllyChamp.CellId, highestRankAllyChamp.ChampionId));
-                await ChampSelectChampionTradeService.RequestTradeAsync(tradeId);
+                var tradeRequested = await TryRequestTradeAsync(availableTradesByCellId[highestRankAllyChamp.CellId]);
+
+                if (tradeRequested)
+                {
+                    _attemptedTrades.Add((highestRankAllyChamp.CellId, highestRankAllyChamp.ChampionId));
+                }
             }
         }
+    }
+
+    private async Task<bool> TryRequestTradeAsync(IEnumerable<ChampSelectTradeContract> availableTrades)
+    {
+        foreach (var trade in availableTrades)
+        {
+            var requestedTrade = await ChampSelectChampionTradeService.RequestTradeAsync(trade.Id);
+
+            if (requestedTrade != null)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void TrackManualBenchSwap(ChampSelectSession session)
+    {
+        var currentChampionId = session?.Player?.ChampionId;
+        var currentBenchChampionIds = (session?.BenchChampions ?? []).Select(x => x.ChampionId).ToHashSet();
+
+        if (_blockedReverseWhileChampionId.HasValue && currentChampionId != _blockedReverseWhileChampionId)
+        {
+            _blockedReverseBenchChampionId = null;
+            _blockedReverseWhileChampionId = null;
+        }
+
+        if (_lastChampionId.HasValue && currentChampionId.HasValue && _lastChampionId != currentChampionId)
+        {
+            if (_pendingAutoBenchSwapChampionId == currentChampionId)
+            {
+                _pendingAutoBenchSwapChampionId = null;
+            }
+            else if (_lastBenchChampionIds.Contains(currentChampionId.Value) && currentBenchChampionIds.Contains(_lastChampionId.Value))
+            {
+                _pendingAutoBenchSwapChampionId = null;
+                _blockedReverseBenchChampionId = _lastChampionId;
+                _blockedReverseWhileChampionId = currentChampionId;
+            }
+        }
+
+        _lastChampionId = currentChampionId;
+        _lastBenchChampionIds = currentBenchChampionIds;
     }
 
     private int GetAramChampionRank(int championId)
