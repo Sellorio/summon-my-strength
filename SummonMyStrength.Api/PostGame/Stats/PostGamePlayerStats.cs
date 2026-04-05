@@ -11,6 +11,35 @@ public class PostGamePlayerStats
     public string ChampionName { get; set; }
     public long SummonerId { get; set; }
     public string SummonerName { get; set; }
+    public string GameName { get; set; }
+    public string TagLine { get; set; }
+    public string RiotIdGameName { get; set; }
+    public string RiotIdTagLine { get; set; }
+
+    [JsonIgnore]
+    public string ShortDisplayName
+    {
+        get
+        {
+            if (!string.IsNullOrWhiteSpace(SummonerName))
+            {
+                return SummonerName;
+            }
+
+            if (!string.IsNullOrWhiteSpace(RiotIdGameName))
+            {
+                return RiotIdGameName;
+            }
+
+            if (!string.IsNullOrWhiteSpace(GameName))
+            {
+                return GameName;
+            }
+
+            return "";
+        }
+    }
+
     public int[] Items { get; set; }
 
     [JsonPropertyName("detectedTeamPosition")]

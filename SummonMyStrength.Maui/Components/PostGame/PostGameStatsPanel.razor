@@ -43,7 +43,7 @@
                                             var champion = _champions.First(x => x.Id == ally.ChampionId);
                                             var isMe = ally.SummonerId == _stats.LocalPlayer.SummonerId;
 
-                                            <PostGameStatsPanelGraphBar Champion="champion" SummonerName="@ally.SummonerName" Value="statInfo.Reader.Invoke(ally)" Max="max" Me="isMe" Ally="!isMe" />
+                                            <PostGameStatsPanelGraphBar Champion="champion" SummonerName="@ally.ShortDisplayName" Value="statInfo.Reader.Invoke(ally)" Max="max" Me="isMe" Ally="!isMe" />
                                         }
 
                                         <hr class="team-separator">
@@ -52,7 +52,7 @@
                                         {
                                             var champion = _champions.First(x => x.Id == enemy.ChampionId);
 
-                                            <PostGameStatsPanelGraphBar Champion="champion" SummonerName="@enemy.SummonerName" Value="statInfo.Reader.Invoke(enemy)" Max="max" Enemy />
+                                            <PostGameStatsPanelGraphBar Champion="champion" SummonerName="@enemy.ShortDisplayName" Value="statInfo.Reader.Invoke(enemy)" Max="max" Enemy />
                                         }
                                     </div>
                                 </ChildContent>
