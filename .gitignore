@@ -3,5 +3,5 @@ obj/
 publish/
 .vs/
 *.user
-*.g.wix
+*.g.wxs
 *.msi

@@ -23,8 +23,11 @@
     <Folder Include="wix\" />
   </ItemGroup>
 
+  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+	<Exec Command="cd ..\SummonMyStrength.Maui&#xD;&#xA;call publish.bat" />
+  </Target>
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="cd .\&#xD;&#xA;set ide=true&#xD;&#xA;&quot;$(TargetPath)&quot;" ContinueOnError="true" />
+    <Exec Command="cd .\&#xD;&#xA;set ide=true&#xD;&#xA;&quot;$(TargetPath)&quot;" />
   </Target>
 
 </Project>

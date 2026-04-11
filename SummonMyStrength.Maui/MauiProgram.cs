@@ -11,8 +11,11 @@ public static class MauiProgram
 {
     public static MauiApp CreateMauiApp()
     {
-        Directory.SetCurrentDirectory(Path.GetDirectoryName(typeof(MauiProgram).Assembly.Location));
+        Directory.SetCurrentDirectory(AppContext.BaseDirectory);
 
+#if WINDOWS
+        ConfigureWebView2UserDataFolder();
+#endif
         var builder = MauiApp.CreateBuilder();
         builder
             .UseMauiApp<App>()
@@ -37,4 +40,13 @@ public static class MauiProgram
 
         return app;
     }
+
+#if WINDOWS
+    private static void ConfigureWebView2UserDataFolder()
+    {
+        var webView2UserDataFolder = Path.Combine(Path.GetTempPath(), "Summon My Strength", "WebView2");
+        Directory.CreateDirectory(webView2UserDataFolder);
+        Environment.SetEnvironmentVariable("WEBVIEW2_USER_DATA_FOLDER", webView2UserDataFolder);
+    }
+#endif
 }

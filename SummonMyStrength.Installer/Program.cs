@@ -8,13 +8,16 @@ namespace SummonMyStrength.Installer
     {
         static void Main()
         {
+            const string installDir = @"%ProgramFiles64Folder%\Summon My Strength";
+            const string applicationExe = "Summon My Strength.exe";
+
             var project = new ManagedProject("Summon My Strength",
-                             new InstallDir(@"C:\SummonMyStrength",
+                             new InstallDir(installDir,
                                  new Files(@"..\SummonMyStrength.Maui\publish\*")), // Files is recursive by default, DirFiles is non-recursive
-                             new Dir("%ProgramMenu%",
+                             new Dir("%ProgramMenu%\\Summon My Strength",
                                 new ExeFileShortcut(
                                      "Summon My Strength",
-                                     @"C:\SummonMyStrength\Summon My Strength.exe",
+                                     $"[INSTALLDIR]{applicationExe}",
                                      "")
                                 {
                                     WorkingDirectory = @"[INSTALLDIR]"
@@ -26,7 +29,8 @@ namespace SummonMyStrength.Installer
                 ManagedUI = new ManagedUI(),
                 MajorUpgrade = new MajorUpgrade
                 {
-                    AllowDowngrades = true,
+                    AllowSameVersionUpgrades = true,
+                    DowngradeErrorMessage = "A newer version of [ProductName] is already installed.",
                     Schedule = UpgradeSchedule.afterInstallExecute
                 }
             };
